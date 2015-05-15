@@ -10,7 +10,7 @@ namespace moose {
 namespace tools {
 
 //! This assumes the the thread ID on your system somehow rhymes with 
-//! a number and tries hard to give you that number
+//! a number and tries really hard to give you that number
 MOOSE_TOOLS_API unsigned int faked_thread_id() throw ();
 
 }

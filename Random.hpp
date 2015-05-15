@@ -11,9 +11,10 @@
 namespace moose {
 namespace tools {
 
-	MOOSE_TOOLS_API boost::uint64_t urand(const boost::uint64_t) throw ();
-
-
+/*! \brief thread safe random number shortcut
+ * This will give you a thread safe random number between 0 and n_max
+ */
+MOOSE_TOOLS_API boost::uint64_t urand(const boost::uint64_t n_max) throw ();
 
 }
 }
