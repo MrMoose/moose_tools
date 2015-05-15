@@ -41,3 +41,14 @@ BOOST_AUTO_TEST_CASE(Statistics) {
 }
 
 
+BOOST_AUTO_TEST_CASE(SmallStatistics) {
+	
+	// make sure this goes well for small numbers
+	accumulator_set<double, stats<tag::mean> > acc;
+	for (unsigned int i = 0; i < 100000; ++i) {
+		
+		BOOST_REQUIRE_NO_THROW(acc(static_cast<double>(moose::tools::urand(2))));
+	}
+	
+	BOOST_CHECK_CLOSE(mean(acc), 1, .0001);
+}
