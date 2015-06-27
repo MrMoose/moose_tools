@@ -16,7 +16,7 @@ namespace tools {
 struct Pimplee {
 
 	//! note that your impl must implement that
-	RTT_PHYSIK_CORE_API virtual ~Pimplee() throw ();
+	MOOSE_TOOLS_API virtual ~Pimplee() throw ();
 };
 
 //! PimplType must be default constructable
