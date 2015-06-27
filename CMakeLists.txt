@@ -11,12 +11,14 @@ find_package(Boost COMPONENTS random chrono thread system REQUIRED)
 set(MOOSE_TOOLS_SRC
 	Random.cpp
 	ThreadId.cpp
+	Pimpled.cpp
 	)
 
 set(MOOSE_TOOLS_HDR
 	MooseToolsConfig.hpp
 	Random.hpp
 	ThreadId.hpp
+	Pimpled.hpp
 	)
 
 include_directories(
