@@ -6,7 +6,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(moose_tools)
 
-find_package(Boost COMPONENTS random chrono thread system REQUIRED)
+find_package(Boost 1.56.0 COMPONENTS random chrono thread system REQUIRED)
 
 set(MOOSE_TOOLS_SRC
 	Random.cpp
