@@ -55,7 +55,7 @@ boost::uint64_t urand(const boost::uint64_t n_max) {
 	// get the thread local PRNG
 	boost::random::mt19937 *prng = gen();
 	assert(prng);
-	boost::random::uniform_int_distribution<> dist(0, n_max);
+	boost::random::uniform_int_distribution<boost::uint64_t> dist(0, n_max);
 	return dist(*prng);
 }
 
