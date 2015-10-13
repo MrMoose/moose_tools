@@ -6,7 +6,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(moose_tools)
 
-find_package(Boost 1.56.0 COMPONENTS random chrono thread system REQUIRED)
+find_package(Boost 1.56.0 COMPONENTS random chrono thread system log REQUIRED)
 
 set(MOOSE_TOOLS_SRC
 	Random.cpp
@@ -27,6 +27,8 @@ include_directories(
 )
 
 add_library(${PROJECT_NAME} SHARED ${MOOSE_TOOLS_SRC})
+
+set(CMAKE_CXX_FLAGS "-std=c++11 -fvisibility=hidden -fPIC -DPIC")
 
 target_link_libraries(${PROJECT_NAME}
 	${Boost_LIBRARIES}
