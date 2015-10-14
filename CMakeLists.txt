@@ -28,7 +28,9 @@ include_directories(
 
 add_library(${PROJECT_NAME} SHARED ${MOOSE_TOOLS_SRC})
 
-set(CMAKE_CXX_FLAGS "-std=c++11 -fvisibility=hidden -fPIC -DPIC")
+if (CMAKE_COMPILER_IS_GNUCXX)
+	set(CMAKE_CXX_FLAGS "-std=c++11 -fvisibility=hidden -fPIC -DPIC")
+endif()
 
 target_link_libraries(${PROJECT_NAME}
 	${Boost_LIBRARIES}
