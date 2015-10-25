@@ -12,6 +12,7 @@ set(MOOSE_TOOLS_SRC
 	Random.cpp
 	ThreadId.cpp
 	Pimpled.cpp
+	Mutexed.cpp
 	)
 
 set(MOOSE_TOOLS_HDR
@@ -19,6 +20,7 @@ set(MOOSE_TOOLS_HDR
 	Random.hpp
 	ThreadId.hpp
 	Pimpled.hpp
+	Mutexed.hpp
 	)
 
 include_directories(
