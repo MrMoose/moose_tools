@@ -3,10 +3,10 @@
 # Software License, Version 1.0. (See accompanying file
 # LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-cmake_minimum_required(VERSION 3.0)
-project(moose_tools)
+#cmake_minimum_required(VERSION 3.0)
+#project(moose_tools)
 
-find_package(Boost 1.56.0 COMPONENTS random chrono thread system log REQUIRED)
+#find_package(Boost 1.56.0 COMPONENTS random chrono thread system log REQUIRED)
 
 set(MOOSE_TOOLS_SRC
 	Random.cpp
@@ -28,13 +28,13 @@ include_directories(
 	${Boost_INCLUDE_DIRS}
 )
 
-add_library(${PROJECT_NAME} SHARED ${MOOSE_TOOLS_SRC})
-
-if (CMAKE_COMPILER_IS_GNUCXX)
-	set(CMAKE_CXX_FLAGS "-std=c++11 -fvisibility=hidden -fPIC -DPIC")
+if (${UNREAL})
+	add_library(moose_tools STATIC ${MOOSE_TOOLS_SRC})
+else()
+	add_library(moose_tools SHARED ${MOOSE_TOOLS_SRC})
 endif()
 
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(moose_tools
 	${Boost_LIBRARIES}
 )
 
