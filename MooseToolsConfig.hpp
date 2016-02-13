@@ -4,8 +4,6 @@
 
 #pragma once
 
-#define MOOSE_TOOLS_DLL
-
 // see https://gcc.gnu.org/wiki/Visibility
 
 // Generic helper definitions for shared library support
@@ -39,4 +37,12 @@
 
 
 
+#ifdef _MSC_VER
+#pragma warning (disable : 4996) // Function call with parameters that may be unsafe.
+                                 // bla bla... Microsofts way of trying to denounce Posix I guess
 
+#if BOOST_MAJOR==1 && BOOST_MINOR==60
+	#pragma warning (disable : 4348) // Boost 1.60 has a quirk in spirit which throws this. If not using 
+#endif
+
+#endif

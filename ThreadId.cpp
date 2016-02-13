@@ -33,13 +33,13 @@ unsigned int faked_thread_id() throw () {
 		} else {
 			// it did not resemble a number. Maybe I can hash it...
 			boost::hash<std::string> string_hash;
-			return string_hash(s);
+			return static_cast<unsigned int>(string_hash(s));
 		}
 		
 	} catch (const boost::thread_resource_error &e) {
 		// what shall I return here?
 		uintptr_t ret = reinterpret_cast<uintptr_t>(&e);
-		return ret;
+		return static_cast<unsigned int>(ret);
 	}
 }
 

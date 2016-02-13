@@ -11,6 +11,8 @@
 
 #include "../ThreadId.hpp"
 
+#include <set>
+
 BOOST_AUTO_TEST_CASE(RunOnce) {
 	
 	BOOST_CHECK(moose::tools::faked_thread_id() != 0);

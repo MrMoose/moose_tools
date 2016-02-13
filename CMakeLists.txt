@@ -6,7 +6,7 @@
 #cmake_minimum_required(VERSION 3.0)
 #project(moose_tools)
 
-#find_package(Boost 1.56.0 COMPONENTS random chrono thread system log REQUIRED)
+#find_package(Boost 1.60.0 COMPONENTS random regex chrono thread system log REQUIRED)
 
 set(MOOSE_TOOLS_SRC
 	Random.cpp
@@ -24,6 +24,7 @@ set(MOOSE_TOOLS_HDR
 	)
 
 include_directories(
+	${moose_tools_SOURCE_DIR}/..
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${Boost_INCLUDE_DIRS}
 )
@@ -31,6 +32,7 @@ include_directories(
 if (${UNREAL})
 	add_library(moose_tools STATIC ${MOOSE_TOOLS_SRC})
 else()
+	add_definitions(-DMOOSE_TOOLS_DLL)
 	add_library(moose_tools SHARED ${MOOSE_TOOLS_SRC})
 endif()
 
