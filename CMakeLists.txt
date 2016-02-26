@@ -13,6 +13,7 @@ set(MOOSE_TOOLS_SRC
 	ThreadId.cpp
 	Pimpled.cpp
 	Mutexed.cpp
+	Macros.cpp
 	)
 
 set(MOOSE_TOOLS_HDR
@@ -21,6 +22,7 @@ set(MOOSE_TOOLS_HDR
 	ThreadId.hpp
 	Pimpled.hpp
 	Mutexed.hpp
+	Macros.hpp
 	)
 
 include_directories(
