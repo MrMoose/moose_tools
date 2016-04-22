@@ -14,6 +14,8 @@ set(MOOSE_TOOLS_SRC
 	Pimpled.cpp
 	Mutexed.cpp
 	Macros.cpp
+	Error.cpp
+	IdTagged.cpp
 	)
 
 set(MOOSE_TOOLS_HDR
@@ -23,6 +25,8 @@ set(MOOSE_TOOLS_HDR
 	Pimpled.hpp
 	Mutexed.hpp
 	Macros.hpp
+	Error.hpp
+	IdTagged.hpp
 	)
 
 include_directories(
