@@ -16,6 +16,7 @@ set(MOOSE_TOOLS_SRC
 	Macros.cpp
 	Error.cpp
 	IdTagged.cpp
+	String.cpp
 	)
 
 set(MOOSE_TOOLS_HDR
@@ -27,6 +28,7 @@ set(MOOSE_TOOLS_HDR
 	Macros.hpp
 	Error.hpp
 	IdTagged.hpp
+	String.hpp
 	)
 
 include_directories(
