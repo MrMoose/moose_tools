@@ -8,7 +8,7 @@
 namespace moose {
 namespace tools {
 
-void MOOSE_TOOLS_API truncate(std::string &n_string, std::size_t n_length) noexcept {
+void truncate(std::string &n_string, std::size_t n_length) noexcept {
 
 	if (n_string.length() > n_length) {
 		n_string.resize(n_length);

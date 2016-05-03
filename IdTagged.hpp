@@ -31,6 +31,7 @@ class IdTagged {
 		
 		~IdTagged(void) noexcept {}
 
+	public:
 		boost::uint64_t id(void) const noexcept {
 			
 			return m_id;

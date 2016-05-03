@@ -6,7 +6,7 @@
 #cmake_minimum_required(VERSION 3.0)
 #project(moose_tools)
 
-#find_package(Boost 1.60.0 COMPONENTS random regex chrono thread system log REQUIRED)
+#find_package(Boost 1.60.0 COMPONENTS random filesystem regex chrono thread system log REQUIRED)
 
 set(MOOSE_TOOLS_SRC
 	Random.cpp
@@ -17,6 +17,7 @@ set(MOOSE_TOOLS_SRC
 	Error.cpp
 	IdTagged.cpp
 	String.cpp
+	Homedir.cpp
 	)
 
 set(MOOSE_TOOLS_HDR
@@ -29,6 +30,7 @@ set(MOOSE_TOOLS_HDR
 	Error.hpp
 	IdTagged.hpp
 	String.hpp
+	Homedir.hpp
 	)
 
 include_directories(
