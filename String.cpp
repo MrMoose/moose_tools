@@ -15,5 +15,7 @@ void truncate(std::string &n_string, std::size_t n_length) noexcept {
 	}
 }
 
+void getRidOfLNK4221() {}
+
 }
 }

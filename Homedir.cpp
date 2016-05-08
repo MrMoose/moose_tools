@@ -7,7 +7,6 @@
 
 #include <stdlib.h>
 
-
 namespace moose {
 namespace tools {
 
