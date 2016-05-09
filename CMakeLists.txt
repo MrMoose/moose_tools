@@ -34,9 +34,13 @@ set(MOOSE_TOOLS_HDR
 	)
 
 include_directories(
+	SYSTEM
+	${Boost_INCLUDE_DIRS}
+)
+
+include_directories(
 	${moose_tools_SOURCE_DIR}/..
 	${CMAKE_CURRENT_SOURCE_DIR}
-	${Boost_INCLUDE_DIRS}
 )
 
 if (${UNREAL})
