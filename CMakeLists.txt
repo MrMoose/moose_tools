@@ -56,7 +56,9 @@ target_link_libraries(moose_tools
 
 add_subdirectory(test)
 enable_testing()
-add_test(NAME Random     COMMAND test/TestRandom  )
-add_test(NAME ThreadedId COMMAND test/TestThreadId)
+add_test(NAME Random     COMMAND TestRandom  )
+add_test(NAME ThreadedId COMMAND TestThreadId)
+add_test(NAME String     COMMAND TestString  )
+
 
 

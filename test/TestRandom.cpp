@@ -50,5 +50,5 @@ BOOST_AUTO_TEST_CASE(SmallStatistics) {
 		BOOST_REQUIRE_NO_THROW(acc(static_cast<double>(moose::tools::urand(2))));
 	}
 	
-	BOOST_CHECK_CLOSE(mean(acc), 1, .0001);
+	BOOST_CHECK_CLOSE(mean(acc), 1.0, 1.0);
 }
