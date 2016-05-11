@@ -15,8 +15,12 @@ namespace tools {
 
 //! Give a class an ID which is randomly generated in c'tor
 //! which can not be changed afterwards
+//! \todo consider making this noncopyable for semantics
 template< typename DerivedType >
 class IdTagged {
+
+	public:
+		typedef boost::uint64_t id_type;
 
 	protected:
 		//! Note that this c'tor can throw but only std::bad_alloc, which all new can
@@ -26,15 +30,15 @@ class IdTagged {
 		}
 
 		//! you can also give in the ID of course
-		IdTagged(const boost::uint64_t n_id)
+		IdTagged(const id_type n_id)
 			: m_id(n_id) {
 		}
 		
-		~IdTagged(void) noexcept {}
+		~IdTagged(void) noexcept = default;
 
 	public:
 		//! this is the main self-explanatory getter
-		boost::uint64_t id(void) const noexcept {
+		id_type id(void) const noexcept {
 			
 			return m_id;
 		}
@@ -45,7 +49,7 @@ class IdTagged {
 		 */
 		typedef struct tag_id_extractor {
 
-			typedef boost::uint64_t result_type;
+			typedef id_type result_type;
 
 			const result_type operator()(const IdTagged< DerivedType > &n_o) const noexcept {
 				return n_o.id();
@@ -68,7 +72,7 @@ class IdTagged {
 		} IdExtractor;
 	
 	private:
-		const boost::uint64_t m_id;
+		const id_type m_id;
 };
 
 

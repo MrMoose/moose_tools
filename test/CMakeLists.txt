@@ -11,3 +11,6 @@ target_link_libraries(TestThreadId moose_tools ${Boost_LIBRARIES})
 
 add_executable(TestString TestString.cpp)
 target_link_libraries(TestString moose_tools ${Boost_LIBRARIES})
+
+add_executable(TestIdTagged TestIdTagged.cpp)
+target_link_libraries(TestIdTagged moose_tools ${Boost_LIBRARIES})

@@ -16,6 +16,7 @@ set(MOOSE_TOOLS_SRC
 	Macros.cpp
 	Error.cpp
 	IdTagged.cpp
+	IdTaggedContainer.cpp
 	String.cpp
 	Homedir.cpp
 	Log.cpp
@@ -30,6 +31,7 @@ set(MOOSE_TOOLS_HDR
 	Macros.hpp
 	Error.hpp
 	IdTagged.hpp
+	IdTaggedContainer.hpp
 	String.hpp
 	Homedir.hpp
 	Log.hpp
@@ -69,6 +71,6 @@ enable_testing()
 add_test(NAME Random     COMMAND TestRandom  )
 add_test(NAME ThreadedId COMMAND TestThreadId)
 add_test(NAME String     COMMAND TestString  )
-
+add_test(NAME IdTagged   COMMAND TestIdTagged)
 
 

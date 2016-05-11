@@ -11,6 +11,10 @@
 
 #include "../ThreadId.hpp"
 
+#if BOOST_MSVC
+#pragma warning (disable : 4553) // faulty '==': operator has no effect; did you intend '='?  in checks
+#endif
+
 #include <set>
 
 BOOST_AUTO_TEST_CASE(RunOnce) {
