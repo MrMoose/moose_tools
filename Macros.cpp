@@ -4,3 +4,7 @@
 //  LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 #include "Macros.hpp"
+
+#if BOOST_MSVC
+void MacrosgetRidOfLNK4221() {}
+#endif

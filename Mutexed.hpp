@@ -28,6 +28,10 @@ class Mutexed {
 		mutable boost::mutex m_mutex;
 };
 
+#if BOOST_MSVC
+MOOSE_TOOLS_API void MutexedgetRidOfLNK4221();
+#endif
+
 }
 }
 

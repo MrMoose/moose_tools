@@ -23,9 +23,6 @@ void trim(SequenceT &n_string);
 }
 */
 
-
-MOOSE_TOOLS_API void getRidOfLNK4221();
-
 }
 }
 

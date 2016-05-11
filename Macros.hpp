@@ -29,3 +29,7 @@ typedef boost::weak_ptr<const mt_macro_structname>   mt_macro_structname ## CWPt
 typedef std::unique_ptr<mt_macro_structname>         mt_macro_structname ## UPtr;
 
 
+
+#if BOOST_MSVC
+MOOSE_TOOLS_API void MacrosgetRidOfLNK4221();
+#endif

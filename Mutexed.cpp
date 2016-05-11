@@ -8,5 +8,9 @@
 namespace moose {
 namespace tools {
 
+#if BOOST_MSVC
+void MutexedgetRidOfLNK4221() {}
+#endif
+
 }
 }

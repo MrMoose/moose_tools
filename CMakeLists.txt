@@ -18,6 +18,7 @@ set(MOOSE_TOOLS_SRC
 	IdTagged.cpp
 	String.cpp
 	Homedir.cpp
+	Log.cpp
 	)
 
 set(MOOSE_TOOLS_HDR
@@ -31,6 +32,7 @@ set(MOOSE_TOOLS_HDR
 	IdTagged.hpp
 	String.hpp
 	Homedir.hpp
+	Log.hpp
 	)
 
 include_directories(
@@ -43,16 +45,24 @@ include_directories(
 	${CMAKE_CURRENT_SOURCE_DIR}
 )
 
+set(MOOSE_TOOLS_EVENT_LOG FALSE CACHE BOOL "Set to true if you want to log to event log in Windows")
+
+if (${MOOSE_TOOLS_EVENT_LOG})
+	add_definitions(-DMOOSE_TOOLS_EVENT_LOG)
+endif()
+
 if (${UNREAL})
-	add_library(moose_tools STATIC ${MOOSE_TOOLS_SRC})
+	add_library(moose_tools STATIC ${MOOSE_TOOLS_SRC} ${MOOSE_TOOLS_HDR})
 else()
 	add_definitions(-DMOOSE_TOOLS_DLL)
-	add_library(moose_tools SHARED ${MOOSE_TOOLS_SRC})
+	add_library(moose_tools SHARED ${MOOSE_TOOLS_SRC} ${MOOSE_TOOLS_HDR})
 endif()
 
 target_link_libraries(moose_tools
 	${Boost_LIBRARIES}
 )
+
+
 
 add_subdirectory(test)
 enable_testing()

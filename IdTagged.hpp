@@ -72,6 +72,10 @@ class IdTagged {
 };
 
 
+#if BOOST_MSVC
+MOOSE_TOOLS_API void IdTaggedgetRidOfLNK4221();
+#endif
+
 }
 }
 
