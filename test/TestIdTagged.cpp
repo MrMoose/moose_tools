@@ -81,10 +81,18 @@ BOOST_AUTO_TEST_CASE(iterator_access) {
 
 	BOOST_TEST_MESSAGE("using iterators on id tagged container");
 
+	MyIdTaggedContainer::pointer_type o1(new IdTaggedClass());
+	MyIdTaggedContainer::pointer_type o2(new IdTaggedClass());
+	MyIdTaggedContainer::pointer_type o3(new IdTaggedClass());
+
+	BOOST_REQUIRE(o1->id() != o2->id());
+	BOOST_REQUIRE(o1->id() != o3->id());
+	BOOST_REQUIRE(o2->id() != o3->id());
+
 	MyIdTaggedContainer c;
-	BOOST_CHECK(c.insert(MyIdTaggedContainer::pointer_type(new IdTaggedClass())));
-	BOOST_CHECK(c.insert(MyIdTaggedContainer::pointer_type(new IdTaggedClass())));
-	BOOST_CHECK(c.insert(MyIdTaggedContainer::pointer_type(new IdTaggedClass())));
+	BOOST_CHECK(c.insert(o1));
+	BOOST_CHECK(c.insert(o2));
+	BOOST_CHECK(c.insert(o3));
 
 	MyIdTaggedContainer::iterator i;
 	MyIdTaggedContainer::const_iterator ci;
@@ -97,10 +105,19 @@ BOOST_AUTO_TEST_CASE(iterator_access) {
 
 	MyIdTaggedContainer::iterator start = c.begin();
 	MyIdTaggedContainer::iterator end   = c.end();
-	BOOST_CHECK(start != end);
+
+
+
+	BOOST_CHECK(   (start->id() == o1->id())
+				|| (start->id() == o2->id())
+				|| (start->id() == o3->id()));
+
+//	BOOST_CHECK(start != end);
 
 //	BOOST_CHECK(c.begin() != c.end());
 //	BOOST_CHECK(c.cbegin() != c.cend());
+
+	
 
 }
 

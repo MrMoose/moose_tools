@@ -31,7 +31,8 @@ class IdTaggedContainerIterator
 					IdTaggedContainerIterator< typename TaggedContainerType::value_type >,
 					TaggedContainerType,
 					boost::bidirectional_traversal_tag,
-					boost::use_default             // reference type is TaggedContainerType::value_type& by default
+					typename TaggedContainerType::value_type &
+					//boost::use_default             // reference type is TaggedContainerType::value_type& by default
 				> {
 
 	public:
@@ -91,10 +92,10 @@ class IdTaggedContainer {
 	public:
 		typedef boost::shared_ptr<TaggedType>       pointer_type;
 		typedef boost::shared_ptr<const TaggedType> const_pointer_type;
-		typedef typename TaggedType                 value_type;
-		typedef typename const TaggedType           const_value_type;
-		typedef typename IdTaggedContainerIterator< IdTaggedContainer< TaggedType > > iterator;
-		typedef typename IdTaggedContainerIterator< const IdTaggedContainer< TaggedType > > const_iterator;
+		typedef TaggedType                          value_type;
+		typedef const TaggedType                    const_value_type;
+		typedef IdTaggedContainerIterator< IdTaggedContainer< TaggedType > > iterator;
+		typedef IdTaggedContainerIterator< const IdTaggedContainer< TaggedType > > const_iterator;
 
 		IdTaggedContainer() = default;
 		IdTaggedContainer(const IdTaggedContainer &n_other) = delete;  // well, we could deep copy it...
