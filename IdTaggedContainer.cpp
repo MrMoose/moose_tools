@@ -12,5 +12,5 @@ namespace tools {
 void IdTaggedContainerGetRidOfLNK4221() {};
 #endif
 
-} // namespace vroni
-} // namespace vron
+} // namespace tools
+} // namespace moose

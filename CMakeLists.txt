@@ -53,7 +53,7 @@ if (${MOOSE_TOOLS_EVENT_LOG})
 	add_definitions(-DMOOSE_TOOLS_EVENT_LOG)
 endif()
 
-if (${UNREAL})
+if (${STATIC})
 	add_library(moose_tools STATIC ${MOOSE_TOOLS_SRC} ${MOOSE_TOOLS_HDR})
 else()
 	add_definitions(-DMOOSE_TOOLS_DLL)
