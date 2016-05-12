@@ -45,28 +45,62 @@ class MyIdTaggedContainer : public IdTaggedContainer< IdTaggedClass > {
 		~MyIdTaggedContainer() = default;
 };
 
-BOOST_AUTO_TEST_CASE( basics ) {
+BOOST_AUTO_TEST_CASE( basic_access ) {
 
 	BOOST_TEST_MESSAGE("using id tagged container");
 	
 	MyIdTaggedContainer c;
 	MyIdTaggedContainer::pointer_type object;
-	BOOST_CHECK_NO_THROW(c.size() == 0);
+	BOOST_CHECK(c.size() == 0);
 	
-	BOOST_CHECK_THROW(c.insert(object), moose::tools::internal_error); // throw on null
+	BOOST_CHECK_THROW(c.insert(object), internal_error); // throw on null
 
 	object.reset(new IdTaggedClass());
 	
 	BOOST_CHECK(c.insert(object) == true);
 	BOOST_CHECK(c.insert(object) == false);  // already present
-	BOOST_CHECK_NO_THROW(c.size() == 1);
+	BOOST_CHECK(c.size() == 1);
 
 	object.reset(new IdTaggedClass());
 	BOOST_CHECK(c.insert(object) == true);
 	BOOST_CHECK(c.insert(object) == false);  // already present
-	BOOST_CHECK_NO_THROW(c.size() == 2);
+	BOOST_CHECK(c.size() == 2);
 
-	BOOST_CHECK_NO_THROW(c.remove(object->id()) == true);
-	BOOST_CHECK_NO_THROW(c.size() == 1);
+	// we have two seperate object with differing id
+	BOOST_CHECK(c[0].id() != c[1].id());
+
+	BOOST_CHECK(c.remove(object->id()) == true);
+	BOOST_CHECK(c.size() == 1);
+
+	// we have one object left
+	BOOST_CHECK(c[0].id());
+}
+
+
+BOOST_AUTO_TEST_CASE(iterator_access) {
+
+	BOOST_TEST_MESSAGE("using iterators on id tagged container");
+
+	MyIdTaggedContainer c;
+	BOOST_CHECK(c.insert(MyIdTaggedContainer::pointer_type(new IdTaggedClass())));
+	BOOST_CHECK(c.insert(MyIdTaggedContainer::pointer_type(new IdTaggedClass())));
+	BOOST_CHECK(c.insert(MyIdTaggedContainer::pointer_type(new IdTaggedClass())));
+
+	MyIdTaggedContainer::iterator i;
+	MyIdTaggedContainer::const_iterator ci;
+
+	BOOST_CHECK_NO_THROW(i = c.begin());
+	BOOST_CHECK_NO_THROW(ci = c.cbegin());
+	BOOST_CHECK_NO_THROW(i = c.end());
+	BOOST_CHECK_NO_THROW(ci = c.cend());
+
+
+	MyIdTaggedContainer::iterator start = c.begin();
+	MyIdTaggedContainer::iterator end   = c.end();
+	BOOST_CHECK(start != end);
+
+//	BOOST_CHECK(c.begin() != c.end());
+//	BOOST_CHECK(c.cbegin() != c.cend());
+
 }
 

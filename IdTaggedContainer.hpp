@@ -28,13 +28,55 @@ namespace tools {
 template< typename TaggedContainerType >
 class IdTaggedContainerIterator
 		: public boost::iterator_facade<
-				IdTaggedContainerIterator< typename TaggedContainerType::value_type >,
+					IdTaggedContainerIterator< typename TaggedContainerType::value_type >,
 					TaggedContainerType,
 					boost::bidirectional_traversal_tag,
 					boost::use_default             // reference type is TaggedContainerType::value_type& by default
 				> {
 
+	public:
+		IdTaggedContainerIterator()
+				: m_container(nullptr) 
+				, m_size(0)
+				, m_idx(static_cast<std::size_t>(-1)) {
+		}
 
+		//! yes, null is BS here
+		explicit IdTaggedContainerIterator(TaggedContainerType *n_container)
+				: m_container(n_container)
+				, m_size(m_container->size())
+				, m_idx(static_cast<std::size_t>(-1)) {
+		}
+
+		IdTaggedContainerIterator(const IdTaggedContainerIterator &n_other) = default;
+		~IdTaggedContainerIterator() = default;
+
+	private:
+		//! those are being used by boost iterator and need friend access
+		friend class boost::iterator_core_access;
+
+		void increment() {
+			// I really don't know how to react to errors here
+			if (m_idx < (m_size - 2)) {
+				++m_idx;
+			}
+		}
+
+		bool equal(IdTaggedContainerIterator const &n_other) const {
+
+			return ((this->m_container == n_other.m_container)
+				&& (this->m_idx == n_other.m_idx));
+		}
+
+		typename TaggedContainerType::value_type &dereference() const {
+			
+			return (*m_container)[m_idx];
+		}
+
+
+		TaggedContainerType  *m_container;
+		std::size_t           m_size;       // number of elements, so max idx == (m_size - 1) 
+		std::size_t           m_idx;
 };
 
 
@@ -51,6 +93,8 @@ class IdTaggedContainer {
 		typedef boost::shared_ptr<const TaggedType> const_pointer_type;
 		typedef typename TaggedType                 value_type;
 		typedef typename const TaggedType           const_value_type;
+		typedef typename IdTaggedContainerIterator< IdTaggedContainer< TaggedType > > iterator;
+		typedef typename IdTaggedContainerIterator< const IdTaggedContainer< TaggedType > > const_iterator;
 
 		IdTaggedContainer() = default;
 		IdTaggedContainer(const IdTaggedContainer &n_other) = delete;  // well, we could deep copy it...
@@ -95,10 +139,40 @@ class IdTaggedContainer {
 			return m_objects.template get<by_id>().size();
 		}
 
-		//value_type &operator[](const std::size_t n_idx) {
-		
-			
-		//}
+		value_type &operator[](const std::size_t n_idx) {
+
+			assert((n_idx < size()) && (n_idx >= 0));
+			// would it be better to ceck for out of bounds rather than let the idx throw?
+			objects_by_random &idx = m_objects.template get<by_random>();
+			return *idx[n_idx];
+		}
+
+		const value_type &operator[](const std::size_t n_idx) const {
+
+			assert((n_idx < size()) && (n_idx >= 0));
+			const objects_by_random &idx = m_objects.template get<by_random>();
+			return *idx[n_idx];
+		}
+
+		iterator begin() {
+
+			return iterator(this);
+		};
+
+		const_iterator cbegin() const {
+
+			return const_iterator(this);
+		};
+
+		iterator end() {
+
+			return iterator();
+		};
+
+		const_iterator cend() const {
+
+			return const_iterator();
+		};
 
 	private:
 
