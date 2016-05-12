@@ -13,27 +13,32 @@
 namespace moose {
 namespace tools {
 
-//! Give a class an ID which is randomly generated in c'tor
-//! which can not be changed afterwards
-//! \todo consider making this noncopyable for semantics
-template< typename DerivedType >
+/*! \brief Give a class an ID which is randomly generated in c'tor
+ *  which can not be changed afterwards
+ *  \todo consider making this noncopyable for semantics
+ */
+template< typename DerivedType, typename IdType = boost::uint64_t>
 class IdTagged {
 
 	public:
-		typedef boost::uint64_t id_type;
+		typedef IdType id_type;
 
 	protected:
 		//! Note that this c'tor can throw but only std::bad_alloc, which all new can
 		//! \throw std::bad_alloc when out of memory on first use
 		IdTagged(void)
-			: m_id(moose::tools::urand()) {
+				: m_id(moose::tools::urand()) {
 		}
 
-		//! you can also give in the ID of course
+		/*! \brief you can also give in the ID of course but only in protected c'tor
+		 *   so the derived class decides whether to offer this possibility but only
+		 *   at creation time
+		 */
 		IdTagged(const id_type n_id)
-			: m_id(n_id) {
+				: m_id(n_id) {
 		}
-		
+
+		IdTagged(const IdTagged &n_other) = delete;
 		~IdTagged(void) noexcept = default;
 
 	public:

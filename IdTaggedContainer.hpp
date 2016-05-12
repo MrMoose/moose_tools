@@ -24,7 +24,6 @@
 namespace moose {
 namespace tools {
 
-	
 template< class TaggedContainerType >
 class IdTaggedContainerIterator
 		: public boost::iterator_facade<

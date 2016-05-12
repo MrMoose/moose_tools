@@ -33,8 +33,9 @@ BOOST_AUTO_TEST_CASE(id_tagged_class) {
 
 	BOOST_CHECK(i1.id() != i2.id());   // give me a call when this yields an error ;-)
 
-	IdTaggedClass i3(i2);
-	BOOST_CHECK(i2.id() == i3.id());
+// I have deleted the copy c'tor
+//	IdTaggedClass i3(i2);
+//	BOOST_CHECK(i2.id() == i3.id());
 }
 
 class MyIdTaggedContainer : public IdTaggedContainer< IdTaggedClass > {

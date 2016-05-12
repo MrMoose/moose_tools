@@ -11,6 +11,8 @@
 namespace moose {
 namespace tools {
 
+/*! \brief shortcut base for classes with a mutex
+ */
 template< typename DerivedType >
 class Mutexed {
 
