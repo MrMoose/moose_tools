@@ -18,8 +18,25 @@
 #include <boost/static_assert.hpp>
 #include <boost/shared_ptr.hpp>
 
+#include <boost/shared_container_iterator.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+
 namespace moose {
 namespace tools {
+
+	
+template< typename TaggedContainerType >
+class IdTaggedContainerIterator
+		: public boost::iterator_facade<
+				IdTaggedContainerIterator< typename TaggedContainerType::value_type >,
+					TaggedContainerType,
+					boost::bidirectional_traversal_tag,
+					boost::use_default             // reference type is TaggedContainerType::value_type& by default
+				> {
+
+
+};
+
 
 /*! \brief Multi-Purpose container for id tagged types
  */
@@ -30,8 +47,10 @@ class IdTaggedContainer {
 	BOOST_STATIC_ASSERT(boost::is_base_of< IdTagged< TaggedType >, TaggedType>::value);
 
 	public:
-		typedef boost::shared_ptr<TaggedType> pointer_type;
+		typedef boost::shared_ptr<TaggedType>       pointer_type;
 		typedef boost::shared_ptr<const TaggedType> const_pointer_type;
+		typedef typename TaggedType                 value_type;
+		typedef typename const TaggedType           const_value_type;
 
 		IdTaggedContainer() = default;
 		IdTaggedContainer(const IdTaggedContainer &n_other) = delete;  // well, we could deep copy it...
@@ -80,6 +99,11 @@ class IdTaggedContainer {
 			return m_objects.get<by_id>().size();
 		}
 
+		//value_type &operator[](const std::size_t n_idx) {
+		
+			
+		//}
+
 	private:
 
 		struct by_id {};
@@ -100,6 +124,8 @@ class IdTaggedContainer {
 
 		tagged_container_type  m_objects;
 };
+
+
 
 #if BOOST_MSVC
 MOOSE_TOOLS_API void IdTaggedContainerGetRidOfLNK4221();
