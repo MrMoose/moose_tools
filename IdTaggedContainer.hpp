@@ -65,13 +65,11 @@ class IdTaggedContainer {
 		 */
 		bool insert(pointer_type n_object) {
 			
-			typedef typename tagged_container_type::index<by_id>::type objects_by_id;
-
 			if (!n_object) {
 				BOOST_THROW_EXCEPTION(internal_error() << error_message("null pointer given"));
 			}
 			
-			objects_by_id &idx = m_objects.get<by_id>();
+			objects_by_id &idx = m_objects.template get<by_id>();
 			if (idx.count(n_object->id())) {
 				// object already present
 				return false;
@@ -87,16 +85,14 @@ class IdTaggedContainer {
 		*/
 		bool remove(const boost::uint64_t n_id) noexcept {
 
-			typedef typename tagged_container_type::index<by_id>::type objects_by_id;
-
-			objects_by_id &idx = m_objects.get<by_id>();
+			objects_by_id &idx = m_objects.template get<by_id>();
 			return idx.erase(n_id) == 1;
 		}
 		
 		//! how many are in there?
 		std::size_t size() const noexcept {
 
-			return m_objects.get<by_id>().size();
+			return m_objects.template get<by_id>().size();
 		}
 
 		//value_type &operator[](const std::size_t n_idx) {
@@ -121,6 +117,9 @@ class IdTaggedContainer {
 						>
 					>
 				> tagged_container_type;
+		
+		typedef typename tagged_container_type::template index<by_id>::type     objects_by_id;
+		typedef typename tagged_container_type::template index<by_random>::type objects_by_random;
 
 		tagged_container_type  m_objects;
 };
