@@ -67,13 +67,13 @@ BOOST_AUTO_TEST_CASE( basic_access ) {
 	BOOST_CHECK(c.size() == 2);
 
 	// we have two seperate object with differing id
-	BOOST_CHECK(c[0].id() != c[1].id());
+	BOOST_CHECK(c[0]->id() != c[1]->id());
 
 	BOOST_CHECK(c.remove(object->id()) == true);
 	BOOST_CHECK(c.size() == 1);
 
 	// we have one object left
-	BOOST_CHECK(c[0].id());
+	BOOST_CHECK(c[0]->id());
 }
 
 
@@ -106,18 +106,47 @@ BOOST_AUTO_TEST_CASE(iterator_access) {
 	MyIdTaggedContainer::iterator start = c.begin();
 	MyIdTaggedContainer::iterator end   = c.end();
 
+	MyIdTaggedContainer::pointer_type test1 = *start;
 
-
-	BOOST_CHECK(   (start->id() == o1->id())
-				|| (start->id() == o2->id())
-				|| (start->id() == o3->id()));
-
-//	BOOST_CHECK(start != end);
-
-//	BOOST_CHECK(c.begin() != c.end());
-//	BOOST_CHECK(c.cbegin() != c.cend());
-
+	// just some rough sanity checks
+	BOOST_CHECK(   ((*start)->id() == o1->id())
+				|| ((*start)->id() == o2->id())
+				|| ((*start)->id() == o3->id()));
 	
+	o1 = *start++;
+	o2 = *start++;
+	o3 = *start;
+	
+	BOOST_CHECK(o1->id() != o2->id());
+	BOOST_CHECK(o1->id() != o3->id());
+	BOOST_CHECK(o2->id() != o3->id());
+}
 
+
+BOOST_AUTO_TEST_CASE(range_based_for) {
+
+	BOOST_TEST_MESSAGE("testing range based for loop on id tagged container");
+
+	MyIdTaggedContainer::pointer_type o1(new IdTaggedClass());
+	MyIdTaggedContainer::pointer_type o2(new IdTaggedClass());
+	MyIdTaggedContainer::pointer_type o3(new IdTaggedClass());
+
+	BOOST_REQUIRE(o1->id() != o2->id());
+	BOOST_REQUIRE(o1->id() != o3->id());
+	BOOST_REQUIRE(o2->id() != o3->id());
+
+	MyIdTaggedContainer c;
+	BOOST_CHECK(c.insert(o1));
+	BOOST_CHECK(c.insert(o2));
+	BOOST_CHECK(c.insert(o3));
+
+	int cnt = 0;
+	IdTaggedClass::id_type last_id = 0;  // yeah, I bitch out too
+	
+	for (const MyIdTaggedContainer::pointer_type &p : c) {
+		BOOST_CHECK(p->id() != last_id);
+		cnt++;  // count how many loops 
+	}
+	BOOST_CHECK(cnt == 3);
 }
 

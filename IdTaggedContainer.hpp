@@ -25,14 +25,13 @@ namespace moose {
 namespace tools {
 
 	
-template< typename TaggedContainerType >
+template< class TaggedContainerType >
 class IdTaggedContainerIterator
 		: public boost::iterator_facade<
-					IdTaggedContainerIterator< typename TaggedContainerType::value_type >,
-					TaggedContainerType,
-					boost::bidirectional_traversal_tag,
-					typename TaggedContainerType::value_type &
-					//boost::use_default             // reference type is TaggedContainerType::value_type& by default
+					IdTaggedContainerIterator< TaggedContainerType >,    // CRPT derived
+					typename TaggedContainerType::pointer_type,          // iterator's value_type
+					boost::random_access_traversal_tag,                  // iterator capabilities model
+					typename TaggedContainerType::pointer_type           // reference type 
 				> {
 
 	public:
@@ -46,7 +45,7 @@ class IdTaggedContainerIterator
 		explicit IdTaggedContainerIterator(TaggedContainerType *n_container)
 				: m_container(n_container)
 				, m_size(m_container->size())
-				, m_idx(static_cast<std::size_t>(-1)) {
+				, m_idx(0) {
 		}
 
 		IdTaggedContainerIterator(const IdTaggedContainerIterator &n_other) = default;
@@ -57,9 +56,19 @@ class IdTaggedContainerIterator
 		friend class boost::iterator_core_access;
 
 		void increment() {
-			// I really don't know how to react to errors here
-			if (m_idx < (m_size - 2)) {
+
+			if (m_idx < (m_size - 1)) {
 				++m_idx;
+			} else {
+				// I make this end, but keep the container
+				m_idx = static_cast<std::size_t>(-1);
+			}
+		}
+
+		void decrement() {
+		
+			if (m_idx != 0) {
+				m_idx--;
 			}
 		}
 
@@ -69,7 +78,18 @@ class IdTaggedContainerIterator
 				&& (this->m_idx == n_other.m_idx));
 		}
 
-		typename TaggedContainerType::value_type &dereference() const {
+		void advance(const std::size_t n) {
+		
+			std::size_t new_idx = m_idx + n;
+			if (new_idx < 0) {
+				new_idx = 0;
+			} else if (new_idx >= m_size) {
+				new_idx = static_cast<std::size_t>(-1);
+			}
+			m_idx = new_idx;
+		}
+
+		typename TaggedContainerType::pointer_type dereference() const {
 			
 			return (*m_container)[m_idx];
 		}
@@ -82,7 +102,8 @@ class IdTaggedContainerIterator
 
 
 /*! \brief Multi-Purpose container for id tagged types
- */
+
+*/
 template< typename TaggedType >
 class IdTaggedContainer {
 
@@ -140,19 +161,19 @@ class IdTaggedContainer {
 			return m_objects.template get<by_id>().size();
 		}
 
-		value_type &operator[](const std::size_t n_idx) {
+		pointer_type operator[](const std::size_t n_idx) {
 
 			assert((n_idx < size()) && (n_idx >= 0));
 			// would it be better to ceck for out of bounds rather than let the idx throw?
 			objects_by_random &idx = m_objects.template get<by_random>();
-			return *idx[n_idx];
+			return idx[n_idx];
 		}
 
-		const value_type &operator[](const std::size_t n_idx) const {
+		const pointer_type operator[](const std::size_t n_idx) const {
 
 			assert((n_idx < size()) && (n_idx >= 0));
 			const objects_by_random &idx = m_objects.template get<by_random>();
-			return *idx[n_idx];
+			return idx[n_idx];
 		}
 
 		iterator begin() {
@@ -167,12 +188,12 @@ class IdTaggedContainer {
 
 		iterator end() {
 
-			return iterator();
+			return iterator(this) + size();
 		};
 
 		const_iterator cend() const {
 
-			return const_iterator();
+			return const_iterator(this) + size();
 		};
 
 	private:
