@@ -181,6 +181,11 @@ class IdTaggedContainer {
 			return iterator(this);
 		};
 
+		const_iterator begin() const {
+
+			return cbegin();
+		};
+
 		const_iterator cbegin() const {
 
 			return const_iterator(this);
@@ -189,6 +194,11 @@ class IdTaggedContainer {
 		iterator end() {
 
 			return iterator(this) + size();
+		};
+
+		const_iterator end() const {
+
+			return cend();
 		};
 
 		const_iterator cend() const {

@@ -148,5 +148,14 @@ BOOST_AUTO_TEST_CASE(range_based_for) {
 		cnt++;  // count how many loops 
 	}
 	BOOST_CHECK(cnt == 3);
+
+	// and do the same for const & container
+	const MyIdTaggedContainer &cc(c);
+	cnt = 0;
+	for (const MyIdTaggedContainer::pointer_type &p : cc) {
+		BOOST_CHECK(p->id() != last_id);
+		cnt++;  // count how many loops 
+	}
+	BOOST_CHECK(cnt == 3);
 }
 
