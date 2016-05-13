@@ -11,7 +11,7 @@
 namespace moose {
 namespace tools {
 
-Pimplee::~Pimplee() throw () {
+Pimplee::~Pimplee() noexcept {
 
 }
 

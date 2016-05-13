@@ -16,7 +16,9 @@ namespace tools {
 struct Pimplee {
 
 	//! note that your impl must implement that
-	MOOSE_TOOLS_API virtual ~Pimplee() throw ();
+	Pimplee() = default;
+	Pimplee(const Pimplee &n_other) = delete;
+	MOOSE_TOOLS_API virtual ~Pimplee() noexcept;
 };
 
 //! PimplType must be default constructable
@@ -30,11 +32,18 @@ class Pimpled {
 
 			// Check if our PimplType has the correct base
 			if (!dynamic_cast<Pimplee *>(m_d)) {
+				delete m_d;
+				m_d = nullptr;
 				throw std::runtime_error("incorrect pimpl base class");
 			}
 		}
 
-		~Pimpled(void) throw () {
+		//! copying this would imply a deep copy of pimpl
+		//! which we could do but I'd rather not force 
+		//! the user to make PimplType copyable.
+		//! Is there a better way to customize this?
+		Pimpled(const Pimpled &n_other) = delete;
+		~Pimpled(void) noexcept {
 
 			Pimplee *tmp = reinterpret_cast<Pimplee *>(m_d);
 			assert(tmp);

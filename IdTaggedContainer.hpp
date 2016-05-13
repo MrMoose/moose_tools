@@ -27,7 +27,7 @@ namespace tools {
 template< class TaggedContainerType >
 class IdTaggedContainerIterator
 		: public boost::iterator_facade<
-					IdTaggedContainerIterator< TaggedContainerType >,    // CRPT derived
+					IdTaggedContainerIterator< TaggedContainerType >,    // CRTP derived
 					typename TaggedContainerType::pointer_type,          // iterator's value_type
 					boost::random_access_traversal_tag,                  // iterator capabilities model
 					typename TaggedContainerType::pointer_type           // reference type 
@@ -148,12 +148,19 @@ class IdTaggedContainer {
 
 			@return true if object was removed
 		*/
-		bool remove(const boost::uint64_t n_id) noexcept {
+		bool remove(const typename TaggedType::id_type n_id) noexcept {
 
 			objects_by_id &idx = m_objects.template get<by_id>();
 			return idx.erase(n_id) == 1;
 		}
 		
+		//! how many are in there?
+		bool has(const typename TaggedType::id_type n_id) const noexcept {
+
+			const objects_by_id &idx = m_objects.template get<by_id>();
+			return idx.count(n_id) > 0;
+		}
+
 		//! how many are in there?
 		std::size_t size() const noexcept {
 

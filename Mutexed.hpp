@@ -17,15 +17,17 @@ template< typename DerivedType >
 class Mutexed {
 
 	public:
-		typedef boost::mutex::scoped_lock slock; 
-		slock lock(void) const {
+		typedef boost::mutex::scoped_lock scoped_lock;
+		scoped_lock lock(void) const {
 			
 			return boost::mutex::scoped_lock(m_mutex);
 		}
 		
 	protected:
-		Mutexed(void) : m_mutex() {}
-	
+		Mutexed(void) = default;
+		Mutexed(const Mutexed &n_other) = delete;
+		virtual ~Mutexed() noexcept = default;
+
 	private:
 		mutable boost::mutex m_mutex;
 };
