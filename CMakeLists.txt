@@ -72,5 +72,6 @@ add_test(NAME Random     COMMAND TestRandom  )
 add_test(NAME ThreadedId COMMAND TestThreadId)
 add_test(NAME String     COMMAND TestString  )
 add_test(NAME IdTagged   COMMAND TestIdTagged)
+add_test(NAME Mutexed    COMMAND TestMutexed )
 
 

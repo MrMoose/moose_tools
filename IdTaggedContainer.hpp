@@ -119,6 +119,7 @@ class IdTaggedContainer {
 
 		IdTaggedContainer() = default;
 		IdTaggedContainer(const IdTaggedContainer &n_other) = delete;  // well, we could deep copy it...
+		IdTaggedContainer(IdTaggedContainer &&n_other) = default;
 		virtual ~IdTaggedContainer() noexcept = default;
 
 		/*! @brief add a new object and return its id
