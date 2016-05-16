@@ -55,18 +55,13 @@ class IdTaggedContainerIterator
 		friend class boost::iterator_core_access;
 
 		void increment() {
-
-			if (m_idx < (m_size - 1)) {
-				++m_idx;
-			} else {
-				// I make this end, but keep the container
-				m_idx = static_cast<std::size_t>(-1);
-			}
+			
+			++m_idx;
 		}
 
 		void decrement() {
-		
-			if (m_idx != 0) {
+
+			if (m_idx > 0) {
 				m_idx--;
 			}
 		}
@@ -78,18 +73,17 @@ class IdTaggedContainerIterator
 		}
 
 		void advance(const std::size_t n) {
-		
+			
 			std::size_t new_idx = m_idx + n;
 			if (new_idx < 0) {
 				new_idx = 0;
-			} else if (new_idx >= m_size) {
-				new_idx = static_cast<std::size_t>(-1);
-			}
+			} 
 			m_idx = new_idx;
 		}
 
 		typename TaggedContainerType::pointer_type dereference() const {
-			
+	
+			// operator will throw on faulty index
 			return (*m_container)[m_idx];
 		}
 
@@ -170,7 +164,10 @@ class IdTaggedContainer {
 
 		pointer_type operator[](const std::size_t n_idx) {
 
-			assert((n_idx < size()) && (n_idx >= 0));
+			if (n_idx >= size()) {
+				BOOST_THROW_EXCEPTION(internal_error() << error_message("container index out of bounds")
+					<< error_argument(n_idx));
+			}
 			// would it be better to ceck for out of bounds rather than let the idx throw?
 			objects_by_random &idx = m_objects.template get<by_random>();
 			return idx[n_idx];
@@ -178,7 +175,10 @@ class IdTaggedContainer {
 
 		const pointer_type operator[](const std::size_t n_idx) const {
 
-			assert((n_idx < size()) && (n_idx >= 0));
+			if (n_idx >= size()) {
+				BOOST_THROW_EXCEPTION(internal_error() << error_message("container index out of bounds")
+					<< error_argument(n_idx));
+			}
 			const objects_by_random &idx = m_objects.template get<by_random>();
 			return idx[n_idx];
 		}
