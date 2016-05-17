@@ -155,6 +155,26 @@ class IdTaggedContainer {
 			const objects_by_id &idx = m_objects.template get<by_id>();
 			return idx.count(n_id) > 0;
 		}
+		
+		//! Is there one with that id?
+		bool has(const typename TaggedType &n_object) const noexcept {
+
+			const objects_by_id &idx = m_objects.template get<by_id>();
+			return idx.count(n_object.id()) > 0;
+		}
+
+		//! How did I get this long without actually retrieving things?
+		//! \return null on not found
+		pointer_type get(const typename TaggedType::id_type n_id) const noexcept {
+
+			const objects_by_id &idx = m_objects.template get<by_id>();
+			objects_by_id::const_iterator i = idx.find(n_id);
+			if (i != idx.end()) {
+				return *i;
+			} else {
+				return pointer_type();
+			}
+		}
 
 		//! how many are in there?
 		std::size_t size() const noexcept {
