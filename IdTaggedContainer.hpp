@@ -17,7 +17,7 @@
 #include <boost/type_traits/is_base_of.hpp>
 #include <boost/static_assert.hpp>
 #include <boost/shared_ptr.hpp>
-
+#include <boost/container/set.hpp>
 #include <boost/shared_container_iterator.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 
@@ -94,8 +94,9 @@ class IdTaggedContainerIterator
 };
 
 
-/*! \brief Multi-Purpose container for id tagged types
+/*! @brief Multi-Purpose container for id tagged types
 
+	@note I've made this copyable but this is a shallow copy
 */
 template< typename TaggedType >
 class IdTaggedContainer {
@@ -115,6 +116,37 @@ class IdTaggedContainer {
 		IdTaggedContainer(const IdTaggedContainer &n_other) = delete;  // well, we could deep copy it...
 		IdTaggedContainer(IdTaggedContainer &&n_other) = default;
 		virtual ~IdTaggedContainer() noexcept = default;
+		IdTaggedContainer &IdTaggedContainer::operator=(IdTaggedContainer &&) = default;
+
+
+		/*! @brief tell if both containers contain the exact same ids
+			only the ids of the objects are compared, not their actual derived content 
+			@throw nil
+			@return true if id are same
+		*/
+		bool operator==(const IdTaggedContainer &n_other) const noexcept {
+		
+			// easy size check first
+			if (this->size() != n_other.size()) {
+				return false;
+			}
+			
+			// now see if each in here is in there too
+			const objects_by_random &idx = m_objects.template get<by_random>();
+			for (std::size_t i = 0; i < idx.size(); ++i) {
+				if (!n_other.has(idx[i]->id())) {
+					return false;
+				}
+			}
+
+			// we are here and checked all and the sized are equal. This means we're done and 
+			return true;
+		}
+
+		bool operator!=(const IdTaggedContainer &n_other) const noexcept {
+
+			return !this->operator==(n_other);
+		}
 
 		/*! @brief add a new object and return its id
 		  
@@ -149,6 +181,11 @@ class IdTaggedContainer {
 			return idx.erase(n_id) == 1;
 		}
 		
+		void clear() noexcept {
+		
+			m_objects.clear();
+		}
+
 		//! how many are in there?
 		bool has(const typename TaggedType::id_type n_id) const noexcept {
 
@@ -231,6 +268,17 @@ class IdTaggedContainer {
 		const_iterator cend() const {
 
 			return const_iterator(this) + size();
+		};
+
+		//! @throw std::bad_alloc
+		boost::container::set<typename TaggedType::id_type> ids_in_container() const {
+			
+			boost::container::set<typename TaggedType::id_type> ret;
+			const objects_by_random &idx = m_objects.template get<by_random>();
+			for (std::size_t i = 0; i < idx.size(); ++i) {
+				ret.insert(idx[i]->id());
+			}
+			return ret;
 		};
 
 	private:
