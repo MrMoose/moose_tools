@@ -39,10 +39,6 @@ struct scientific_policy : karma::real_policies<Num> {
 error_argument::error_argument(const boost::any &n_something)
 		: error_argument_type("<cannot determine argument type>") {
 
-	// define a new generator type based on the new policy
-	typedef karma::real_generator<double, scientific_policy<double> > science_type;
-	science_type const scientific = science_type();
-
 	if (n_something.type() == typeid(unsigned int)) {
 		std::back_insert_iterator<std::string> out(value());
 		karma::generate(out, karma::uint_, boost::any_cast<unsigned int>(n_something));
