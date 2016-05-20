@@ -127,6 +127,9 @@ BOOST_AUTO_TEST_CASE(iterator_access) {
 BOOST_AUTO_TEST_CASE(range_based_for) {
 
 	BOOST_TEST_MESSAGE("testing range based for loop on id tagged container");
+	
+	int cnt = 0;
+	IdTaggedClass::id_type last_id = 0;  // yeah, I bitch out too
 
 	MyIdTaggedContainer::pointer_type o1(new IdTaggedClass());
 	MyIdTaggedContainer::pointer_type o2(new IdTaggedClass());
@@ -137,12 +140,16 @@ BOOST_AUTO_TEST_CASE(range_based_for) {
 	BOOST_REQUIRE(o2->id() != o3->id());
 
 	MyIdTaggedContainer c;
+
+	// It was buggy iterating an empty container
+	for (const MyIdTaggedContainer::pointer_type &p : c) {
+		cnt++;  // count how many loops 
+	}
+	BOOST_CHECK(cnt == 0);
+
 	BOOST_CHECK(c.insert(o1));
 	BOOST_CHECK(c.insert(o2));
 	BOOST_CHECK(c.insert(o3));
-
-	int cnt = 0;
-	IdTaggedClass::id_type last_id = 0;  // yeah, I bitch out too
 	
 	for (const MyIdTaggedContainer::pointer_type &p : c) {
 		BOOST_CHECK(p->id() != last_id);

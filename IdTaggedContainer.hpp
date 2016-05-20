@@ -17,7 +17,7 @@
 #include <boost/type_traits/is_base_of.hpp>
 #include <boost/static_assert.hpp>
 #include <boost/shared_ptr.hpp>
-
+#include <boost/container/set.hpp>
 #include <boost/shared_container_iterator.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 
@@ -55,18 +55,13 @@ class IdTaggedContainerIterator
 		friend class boost::iterator_core_access;
 
 		void increment() {
-
-			if (m_idx < (m_size - 1)) {
-				++m_idx;
-			} else {
-				// I make this end, but keep the container
-				m_idx = static_cast<std::size_t>(-1);
-			}
+			
+			++m_idx;
 		}
 
 		void decrement() {
-		
-			if (m_idx != 0) {
+
+			if (m_idx > 0) {
 				m_idx--;
 			}
 		}
@@ -83,7 +78,8 @@ class IdTaggedContainerIterator
 		}
 
 		typename TaggedContainerType::pointer_type dereference() const {
-			
+	
+			// operator will throw on faulty index
 			return (*m_container)[m_idx];
 		}
 
@@ -94,8 +90,9 @@ class IdTaggedContainerIterator
 };
 
 
-/*! \brief Multi-Purpose container for id tagged types
+/*! @brief Multi-Purpose container for id tagged types
 
+	@note I've made this copyable but this is a shallow copy
 */
 template< typename TaggedType >
 class IdTaggedContainer {
@@ -180,6 +177,11 @@ class IdTaggedContainer {
 			return idx.erase(n_id) == 1;
 		}
 		
+		void clear() noexcept {
+		
+			m_objects.clear();
+		}
+
 		//! how many are in there?
 		bool has(const typename TaggedType::id_type n_id) const noexcept {
 
@@ -215,7 +217,10 @@ class IdTaggedContainer {
 
 		pointer_type operator[](const std::size_t n_idx) {
 
-			assert((n_idx < size()) && (n_idx >= 0));
+			if (n_idx >= size()) {
+				BOOST_THROW_EXCEPTION(internal_error() << error_message("container index out of bounds")
+					<< error_argument(n_idx));
+			}
 			// would it be better to ceck for out of bounds rather than let the idx throw?
 			objects_by_random &idx = m_objects.template get<by_random>();
 			return idx[n_idx];
@@ -223,7 +228,10 @@ class IdTaggedContainer {
 
 		const pointer_type operator[](const std::size_t n_idx) const {
 
-			assert((n_idx < size()) && (n_idx >= 0));
+			if (n_idx >= size()) {
+				BOOST_THROW_EXCEPTION(internal_error() << error_message("container index out of bounds")
+					<< error_argument(n_idx));
+			}
 			const objects_by_random &idx = m_objects.template get<by_random>();
 			return idx[n_idx];
 		}
@@ -256,6 +264,17 @@ class IdTaggedContainer {
 		const_iterator cend() const {
 
 			return const_iterator(this) + size();
+		};
+
+		//! @throw std::bad_alloc
+		boost::container::set<typename TaggedType::id_type> ids_in_container() const {
+			
+			boost::container::set<typename TaggedType::id_type> ret;
+			const objects_by_random &idx = m_objects.template get<by_random>();
+			for (std::size_t i = 0; i < idx.size(); ++i) {
+				ret.insert(idx[i]->id());
+			}
+			return ret;
 		};
 
 	private:

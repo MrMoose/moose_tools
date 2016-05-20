@@ -31,7 +31,7 @@ BOOST_AUTO_TEST_CASE(compile_read_lock) {
 	BOOST_CHECK_NO_THROW(inc1 = c.incarnation());
 	
 	{
-		MutexedClass::read_lock rl = c.acquire_read_lock();
+	//	MutexedClass::scoped_lock slock = c.acquire_read_lock();
 	}
 	BOOST_CHECK_NO_THROW(inc2 = c.incarnation());
 	BOOST_CHECK(inc1 == inc2);
@@ -48,7 +48,7 @@ BOOST_AUTO_TEST_CASE(compile_write_lock) {
 	BOOST_CHECK_NO_THROW(inc1 = c.incarnation());
 	
 	{
-		MutexedClass::write_lock wl = c.acquire_write_lock();
+		MutexedClass::scoped_lock wl = c.acquire_write_lock();
 	}
 
 	BOOST_CHECK_NO_THROW(inc2 = c.incarnation());

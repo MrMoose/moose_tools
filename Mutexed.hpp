@@ -24,45 +24,44 @@ class Mutexed {
 		 * Of course this doesn't imply any data have actually been changed
 		 * but it signals the possibility thereof.
 		 */
-		struct write_lock : public boost::unique_lock< Lockable > {
+		struct scoped_lock : public boost::unique_lock< Lockable > {
 	
-			write_lock(Mutexed<DerivedType> &n_issuer)
+			scoped_lock() = delete;
+			scoped_lock(Mutexed<DerivedType> &n_issuer, bool n_writing)
 					: boost::unique_lock<Lockable>(n_issuer.m_mutex)
-					, m_issuer(n_issuer) {};
-			write_lock(const write_lock &) = delete;
-			write_lock(write_lock &&) = default;
-			~write_lock() noexcept {
-				m_issuer.m_incarnation++;
+					, m_issuer(n_issuer)
+					, m_writing(n_writing) {};
+			scoped_lock(const scoped_lock &) = delete;
+			scoped_lock(scoped_lock &&) = default;
+			~scoped_lock() noexcept {
+				if (m_writing) {
+					m_issuer.m_incarnation++;
+				}
 			};
+
+			//! upgrade a read_lock to a write_lock
+			void upgrade() noexcept {
+				m_writing = true;
+			}
+
+			//! downgrade a write_lock to a read lock
+			void downgrade() noexcept {
+				m_writing = false;
+			}
+
 			Mutexed<DerivedType> &m_issuer;
+			bool                  m_writing;
 		};
 
-		//! a regular unique_lock which doesn't modify incarnation
-		struct read_lock : public boost::unique_lock< Lockable > {
-	
-			read_lock(const Mutexed<DerivedType> &n_issuer)
-					: boost::unique_lock<Lockable>(n_issuer.m_mutex) {};
-			read_lock(const read_lock &) = delete;
-			read_lock(read_lock &&) = default;
-			~read_lock() noexcept = default;
-		};
-
-
-		read_lock acquire_read_lock(void) const {
+		scoped_lock acquire_read_lock(void) const {
 			
-			return read_lock(*this);
+			return scoped_lock(*const_cast< Mutexed< DerivedType > *>(this), false);
 		}
 
-		write_lock acquire_write_lock(void) {
+		scoped_lock acquire_write_lock(void) {
 			
-			return write_lock(*this);
+			return scoped_lock(*this, true);
 		}
-
-		
-	//	scoped_lock lock(void) const {
-			
-	//		return boost::mutex::scoped_lock(m_mutex);
-	//	}
 		
 		boost::uint64_t incarnation() const noexcept {
 		
