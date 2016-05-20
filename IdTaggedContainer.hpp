@@ -79,13 +79,7 @@ class IdTaggedContainerIterator
 
 		void advance(const std::size_t n) {
 		
-			std::size_t new_idx = m_idx + n;
-			if (new_idx < 0) {
-				new_idx = 0;
-			} else if (new_idx >= m_size) {
-				new_idx = static_cast<std::size_t>(-1);
-			}
-			m_idx = new_idx;
+			m_idx += n;
 		}
 
 		typename TaggedContainerType::pointer_type dereference() const {
@@ -121,6 +115,37 @@ class IdTaggedContainer {
 		IdTaggedContainer(const IdTaggedContainer &n_other) = delete;  // well, we could deep copy it...
 		IdTaggedContainer(IdTaggedContainer &&n_other) = default;
 		virtual ~IdTaggedContainer() noexcept = default;
+		IdTaggedContainer< TaggedType > &operator=(IdTaggedContainer &&) = default;
+
+
+		/*! @brief tell if both containers contain the exact same ids
+			only the ids of the objects are compared, not their actual derived content 
+			@throw nil
+			@return true if id are same
+		*/
+		bool operator==(const IdTaggedContainer &n_other) const noexcept {
+		
+			// easy size check first
+			if (this->size() != n_other.size()) {
+				return false;
+			}
+			
+			// now see if each in here is in there too
+			const objects_by_random &idx = m_objects.template get<by_random>();
+			for (std::size_t i = 0; i < idx.size(); ++i) {
+				if (!n_other.has(idx[i]->id())) {
+					return false;
+				}
+			}
+
+			// we are here and checked all and the sized are equal. This means we're done and 
+			return true;
+		}
+
+		bool operator!=(const IdTaggedContainer &n_other) const noexcept {
+
+			return !this->operator==(n_other);
+		}
 
 		/*! @brief add a new object and return its id
 		  
@@ -160,6 +185,26 @@ class IdTaggedContainer {
 
 			const objects_by_id &idx = m_objects.template get<by_id>();
 			return idx.count(n_id) > 0;
+		}
+		
+		//! Is there one with that id?
+		bool has(const TaggedType &n_object) const noexcept {
+
+			const objects_by_id &idx = m_objects.template get<by_id>();
+			return idx.count(n_object.id()) > 0;
+		}
+
+		//! How did I get this long without actually retrieving things?
+		//! \return null on not found
+		pointer_type get(const typename TaggedType::id_type n_id) const noexcept {
+
+			const objects_by_id &idx = m_objects.template get<by_id>();
+			typename objects_by_id::const_iterator i = idx.find(n_id);
+			if (i != idx.end()) {
+				return *i;
+			} else {
+				return pointer_type();
+			}
 		}
 
 		//! how many are in there?
