@@ -8,6 +8,7 @@
 #include "MooseToolsConfig.hpp"
 #include "IdTagged.hpp"
 #include "Error.hpp"
+#include "Carne.hpp"
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
@@ -53,6 +54,7 @@ class IdTaggedContainerIterator
 	private:
 		//! those are being used by boost iterator and need friend access
 		friend class boost::iterator_core_access;
+		friend typename TaggedContainerType;
 
 		void increment() {
 			
@@ -83,7 +85,6 @@ class IdTaggedContainerIterator
 			return (*m_container)[m_idx];
 		}
 
-
 		TaggedContainerType  *m_container;
 		std::size_t           m_size;       // number of elements, so max idx == (m_size - 1) 
 		std::size_t           m_idx;
@@ -91,11 +92,15 @@ class IdTaggedContainerIterator
 
 
 /*! @brief Multi-Purpose container for id tagged types
+	
+	TaggedType must be derived from IdTagged.
+
+	Modifyinf operations will increase incarnation count
 
 	@note I've made this copyable but this is a shallow copy
 */
 template< typename TaggedType >
-class IdTaggedContainer {
+class IdTaggedContainer : public Incarnated< IdTaggedContainer<TaggedType> > {
 
 	// This container only works for types that are IdTagged
 	BOOST_STATIC_ASSERT(boost::is_base_of< IdTagged< TaggedType >, TaggedType>::value);
@@ -163,6 +168,7 @@ class IdTaggedContainer {
 				return false;
 			} else {
 				idx.insert(n_object);
+				increase_incarnation();
 				return true;
 			}
 		}
@@ -174,12 +180,45 @@ class IdTaggedContainer {
 		bool remove(const typename TaggedType::id_type n_id) noexcept {
 
 			objects_by_id &idx = m_objects.template get<by_id>();
-			return idx.erase(n_id) == 1;
+			bool ret = (idx.erase(n_id) == 1);
+			if (ret) {
+				increase_incarnation();
+			}
+
+			return ret;
 		}
 		
+		// mimic std::map erase
+		iterator erase(iterator n_position) {
+			
+			if (n_position == end()) {
+				return end();
+			}
+
+			// sadly I don't know if removal changes the order in the other index
+			// I have to return an iterator to the next item. Which means, if I delete one 
+			// and simply return a new iterator with the same position I cannot be sure
+			// the elements after this would be the same as they were before the removal.
+			// If you know this for sure, please change accordingly.
+			objects_by_random &ridx = m_objects.template get<by_random>();
+			objects_by_random::iterator rai = ridx.begin() + n_position.m_idx;
+
+			objects_by_id::iterator deli = m_objects.template project<by_id>(rai);
+			objects_by_id &oidx = m_objects.template get<by_id>();
+			oidx.erase(deli);
+			increase_incarnation();
+
+			return iterator(this) + n_position.m_idx;
+		}
+
 		void clear() noexcept {
 		
+			if (m_objects.template get<by_id>().empty()) {
+				return;
+			}
+
 			m_objects.clear();
+			increase_incarnation();
 		}
 
 		//! how many are in there?
@@ -300,8 +339,6 @@ class IdTaggedContainer {
 
 		tagged_container_type  m_objects;
 };
-
-
 
 #if BOOST_MSVC
 MOOSE_TOOLS_API void IdTaggedContainerGetRidOfLNK4221();

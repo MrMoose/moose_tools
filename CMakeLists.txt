@@ -9,6 +9,7 @@
 #find_package(Boost 1.60.0 COMPONENTS random filesystem regex chrono thread system log REQUIRED)
 
 set(MOOSE_TOOLS_SRC
+	Carne.cpp
 	Random.cpp
 	ThreadId.cpp
 	Pimpled.cpp
@@ -24,6 +25,7 @@ set(MOOSE_TOOLS_SRC
 
 set(MOOSE_TOOLS_HDR
 	MooseToolsConfig.hpp
+	Carne.hpp
 	Random.hpp
 	ThreadId.hpp
 	Pimpled.hpp
