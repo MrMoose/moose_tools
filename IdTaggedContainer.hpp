@@ -8,6 +8,7 @@
 #include "MooseToolsConfig.hpp"
 #include "IdTagged.hpp"
 #include "Error.hpp"
+#include "Carne.hpp"
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
@@ -84,7 +85,6 @@ class IdTaggedContainerIterator
 			return (*m_container)[m_idx];
 		}
 
-
 		TaggedContainerType  *m_container;
 		std::size_t           m_size;       // number of elements, so max idx == (m_size - 1) 
 		std::size_t           m_idx;
@@ -92,11 +92,15 @@ class IdTaggedContainerIterator
 
 
 /*! @brief Multi-Purpose container for id tagged types
+	
+	TaggedType must be derived from IdTagged.
+
+	Modifyinf operations will increase incarnation count
 
 	@note I've made this copyable but this is a shallow copy
 */
 template< typename TaggedType >
-class IdTaggedContainer {
+class IdTaggedContainer : public Incarnated< IdTaggedContainer<TaggedType> > {
 
 	// This container only works for types that are IdTagged
 	BOOST_STATIC_ASSERT(boost::is_base_of< IdTagged< TaggedType >, TaggedType>::value);
@@ -203,7 +207,6 @@ class IdTaggedContainer {
 			objects_by_id &oidx = m_objects.template get<by_id>();
 			oidx.erase(deli);
 			Incarnated< IdTaggedContainer<TaggedType> >::increase_incarnation();
-
 			return iterator(this) + n_position.m_idx;
 		}
 
@@ -333,8 +336,6 @@ class IdTaggedContainer {
 
 		tagged_container_type  m_objects;
 };
-
-
 
 #if BOOST_MSVC
 MOOSE_TOOLS_API void IdTaggedContainerGetRidOfLNK4221();
