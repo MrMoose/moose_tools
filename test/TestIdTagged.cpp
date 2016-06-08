@@ -106,6 +106,7 @@ BOOST_AUTO_TEST_CASE(iterator_access) {
 
 	MyIdTaggedContainer::iterator start = c.begin();
 	MyIdTaggedContainer::iterator end   = c.end();
+	(void)end;
 
 	MyIdTaggedContainer::pointer_type test1 = *start;
 
@@ -143,6 +144,7 @@ BOOST_AUTO_TEST_CASE(range_based_for) {
 
 	// It was buggy iterating an empty container
 	for (const MyIdTaggedContainer::pointer_type &p : c) {
+		(void)p;
 		cnt++;  // count how many loops 
 	}
 	BOOST_CHECK(cnt == 0);

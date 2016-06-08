@@ -53,6 +53,7 @@ class IdTaggedContainerIterator
 	private:
 		//! those are being used by boost iterator and need friend access
 		friend class boost::iterator_core_access;
+		friend TaggedContainerType;
 
 		void increment() {
 			
@@ -163,6 +164,7 @@ class IdTaggedContainer {
 				return false;
 			} else {
 				idx.insert(n_object);
+				Incarnated< IdTaggedContainer<TaggedType> >::increase_incarnation();
 				return true;
 			}
 		}
@@ -174,12 +176,43 @@ class IdTaggedContainer {
 		bool remove(const typename TaggedType::id_type n_id) noexcept {
 
 			objects_by_id &idx = m_objects.template get<by_id>();
-			return idx.erase(n_id) == 1;
+			bool ret = (idx.erase(n_id) == 1);
+			if (ret) {
+				Incarnated< IdTaggedContainer<TaggedType> >::increase_incarnation();
+			}
+
+			return ret;
 		}
 		
+		// mimic std::map erase
+		iterator erase(iterator n_position) {
+			
+			if (n_position == end()) {
+				return end();
+			}
+
+			// sadly I don't know if removal changes the order in the other index
+			// I have to return an iterator to the next item. Which means, if I delete one 
+			// and simply return a new iterator with the same position I cannot be sure
+			// the elements after this would be the same as they were before the removal.
+			// If you know this for sure, please change accordingly.
+			objects_by_random &ridx = m_objects.template get<by_random>();
+			typename objects_by_random::iterator rai = ridx.begin() + n_position.m_idx;
+
+			typename objects_by_id::iterator deli = m_objects.template project<by_id>(rai);
+			objects_by_id &oidx = m_objects.template get<by_id>();
+			oidx.erase(deli);
+			Incarnated< IdTaggedContainer<TaggedType> >::increase_incarnation();
+
+			return iterator(this) + n_position.m_idx;
+		}
+
 		void clear() noexcept {
-		
-			m_objects.clear();
+	
+			if (size()) {
+				m_objects.clear();
+				Incarnated< IdTaggedContainer<TaggedType> >::increase_incarnation();
+			}
 		}
 
 		//! how many are in there?
