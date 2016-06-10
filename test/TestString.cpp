@@ -7,7 +7,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include "../String.hpp"
-
+#include "../Error.hpp"
 #include <set>
 
 using namespace moose::tools;
@@ -27,3 +27,16 @@ BOOST_AUTO_TEST_CASE(TruncateSimple) {
 }
 
 
+
+BOOST_AUTO_TEST_CASE(ParseIp) {
+
+	boost::asio::ip::address addr;
+	unsigned short int port;
+
+	BOOST_CHECK_NO_THROW(from_google_ep("ipv4:192.168.178.30:61184", addr, port));
+	BOOST_CHECK_NO_THROW(from_google_ep("ipv6:[2a02:810d:e40:67c:adb3:f561:144f:89f5]:61176", addr, port));
+	BOOST_CHECK_THROW(from_google_ep("ipv6:[2a02:810dsgdc:adb3:f561:144f:89f5]:61176", addr, port), network_error);
+	BOOST_CHECK_THROW(from_google_ep("ipdyfa6", addr, port), network_error);
+	BOOST_CHECK_THROW(from_google_ep("ipv4:192.", addr, port), network_error);
+
+}
