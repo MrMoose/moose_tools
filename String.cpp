@@ -93,7 +93,7 @@ void from_google_ep(const std::string &n_google_ep, boost::asio::ip::address &n_
 		} else {
 			BOOST_THROW_EXCEPTION(network_error() << error_message("Cannot parse IP") << error_argument(n_google_ep));
 		}
-	} catch (const std::exception &sex) {  // asio throws on invalid parse
+	} catch (const std::exception &) {  // asio throws on invalid parse
 		BOOST_THROW_EXCEPTION(network_error() << error_message("Cannot parse IP") << error_argument(n_google_ep));
 	}
 }
@@ -101,7 +101,7 @@ void from_google_ep(const std::string &n_google_ep, boost::asio::ip::address &n_
 void from_google_ep(const std::string &n_google_ep, boost::asio::ip::address &n_address) {
 
 	unsigned short int unused_port = 0;
-	return from_google_ep(n_google_ep, n_address);
+	return from_google_ep(n_google_ep, n_address, unused_port);
 }
 
 }
