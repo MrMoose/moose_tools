@@ -16,6 +16,14 @@ namespace tools {
 //! truncate a string to at most n characters
 void MOOSE_TOOLS_API truncate(std::string &n_string, std::size_t n_length) noexcept;
 
+/*
+This should really be a template to fit into boost algos
+
+template<typename SequenceT>
+void trim(SequenceT &n_string);
+
+}
+*/
 
 /*! @brief google uses an endpoint representation string that I don't exactly know but try to parse here
 
@@ -37,16 +45,8 @@ void MOOSE_TOOLS_API from_google_ep(const std::string &n_google_ep, boost::asio:
 */
 void MOOSE_TOOLS_API from_google_ep(const std::string &n_google_ep, boost::asio::ip::address &n_address);
 
-
-
-/*
-  This should really be a template to fit into boost algos
-
-template<typename SequenceT>
-void trim(SequenceT &n_string);
-
-}
-*/
+//! spirit itoa wrapper. Always succeeds except bad_alloc
+std::string MOOSE_TOOLS_API itoa(const boost::uint64_t n_number);
 
 }
 }

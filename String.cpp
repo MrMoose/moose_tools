@@ -10,6 +10,7 @@
 #include <boost/spirit/include/qi_parse.hpp>
 #include <boost/spirit/include/phoenix.hpp>
 #include <boost/fusion/include/vector.hpp>
+#include <boost/spirit/include/karma.hpp>
 #include <boost/asio.hpp>
 
 namespace moose {
@@ -43,6 +44,7 @@ struct ip6_from_str_impl {
 };
 
 namespace qi = boost::spirit::qi;
+namespace karma = boost::spirit::karma;
 namespace ascii = qi::ascii;
 namespace ip = boost::asio::ip;
 namespace phx = boost::phoenix;
@@ -102,6 +104,14 @@ void from_google_ep(const std::string &n_google_ep, boost::asio::ip::address &n_
 
 	unsigned short int unused_port = 0;
 	return from_google_ep(n_google_ep, n_address, unused_port);
+}
+
+std::string itoa(const boost::uint64_t n_number) {
+
+	std::string ret;
+	std::back_insert_iterator<std::string> sink(ret);
+	karma::generate(sink, karma::uint_, n_number);   // why should this fail?
+	return ret;
 }
 
 }
