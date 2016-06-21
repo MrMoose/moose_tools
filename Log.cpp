@@ -80,6 +80,10 @@ void init_logging(void) {
 
 #ifndef NDEBUG
 	logging::core::get()->add_sink(csink);
+#else
+	logging::core::get()->set_filter(
+		logging::trivial::severity >= logging::trivial::info
+	);
 #endif
 
 	logging::add_common_attributes();
@@ -128,7 +132,7 @@ void init_logging(void) {
 #endif
 
 
-	BOOST_LOG_GLOBAL_LOGGER_INIT(s_moose_logger, DefaultLogger) {
+BOOST_LOG_GLOBAL_LOGGER_INIT(s_moose_logger, DefaultLogger) {
 
 	boost::log::sources::severity_logger_mt< severity_level > lg;
 	return lg;
