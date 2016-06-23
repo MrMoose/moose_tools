@@ -26,7 +26,8 @@ enum severity_level {
 	debug,
 	normal,
 	warning,
-	error
+	error,
+	critical
 };
 
 #ifdef _WIN32

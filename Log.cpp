@@ -33,6 +33,26 @@ namespace tools {
 BOOST_LOG_ATTRIBUTE_KEYWORD(severity, "Severity", severity_level)
 BOOST_LOG_ATTRIBUTE_KEYWORD(timestamp, "TimeStamp", boost::posix_time::ptime)
 
+static const char* const severity_strings[] = {
+
+	"<DEBUG> ",
+	"<INFO> ",
+	"<WARNING> ",
+	"<ERROR> ",
+	"<CRITICAL> "
+};
+
+template< typename CharT, typename TraitsT >
+std::basic_ostream< CharT, TraitsT > &operator<<(std::basic_ostream< CharT, TraitsT > &n_os, severity_level n_level) {
+	
+	const char* str = severity_strings[n_level];
+	if (n_level < 5 && n_level >= 0)
+		n_os << str;
+	else
+		n_os << static_cast< int >(n_level);
+	return n_os;
+}
+
 
 #ifdef _WIN32
 
@@ -50,6 +70,14 @@ void init_logging(void) {
 	boost::shared_ptr<std::ostream> stream(&std::clog, boost::null_deleter());
 	boost::shared_ptr<ConsoleSink> csink = boost::make_shared<ConsoleSink>();
 	csink->locked_backend()->add_stream(stream);
+	
+	csink->set_formatter(
+		expr::stream
+		<< "[" << timestamp << "] "
+		<< severity
+		<< expr::smessage
+		<< " (" << expr::attr< std::string >("Scope") << ")"
+	);
 #endif
 
 #ifndef MOOSE_TOOLS_EVENT_LOG
@@ -64,6 +92,7 @@ void init_logging(void) {
 			<< expr::smessage
 			<< " (" << expr::attr< std::string >("Scope") << ")"
 		);
+
 
 #ifdef MOOSE_TOOLS_EVENT_LOG
 	// We'll have to map our custom levels to the event log event types
@@ -85,6 +114,9 @@ void init_logging(void) {
 		logging::trivial::severity >= logging::trivial::info
 	);
 #endif
+//	logging::core::get()->set_filter(
+//		logging::trivial::severity >= logging::trivial::info
+//	);
 
 	logging::add_common_attributes();
 	logging::core::get()->add_global_attribute("Scope", boost::log::attributes::named_scope());
@@ -107,6 +139,14 @@ void init_logging(void) {
 	boost::shared_ptr<std::ostream> stream(&std::clog, boost::null_deleter());
 	boost::shared_ptr<ConsoleSink> csink = boost::make_shared<ConsoleSink>();
 	csink->locked_backend()->add_stream(stream);
+
+	csink->set_formatter(
+		expr::stream
+		<< "[" << timestamp << "] "
+		<< severity
+		<< expr::smessage
+		<< " (" << expr::attr< std::string >("Scope") << ")"
+	);
 #endif
 
 	sink->set_formatter(
