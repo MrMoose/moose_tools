@@ -10,6 +10,8 @@
 #include <boost/log/trivial.hpp>
 #include <boost/log/sinks.hpp>
 #include <boost/log/sources/global_logger_storage.hpp>
+#include <boost/log/attributes/named_scope.hpp>
+#include <boost/log/support/exception.hpp>
 
 #ifdef _WIN32
 #include <boost/log/sinks/event_log_backend.hpp>

@@ -76,8 +76,11 @@ void init_logging(void) {
 		<< "[" << timestamp << "] "
 		<< severity
 		<< expr::smessage
-		<< " (" << expr::attr< std::string >("Scope") << ")"
-	);
+//		<< " (" << expr::attr< std::string >("Scope") << ")"
+//		<< " (" << expr::format_named_scope("Scope",
+//			boost::log::keywords::format = "%n (%f:%l)",
+//			boost::log::keywords::iteration = expr::reverse) << ")"
+);
 #endif
 
 #ifndef MOOSE_TOOLS_EVENT_LOG
