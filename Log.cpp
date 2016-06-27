@@ -62,16 +62,16 @@ void init_logging(void) {
 	namespace sinks = boost::log::sinks;
 	namespace expr = boost::log::expressions;
 
-	// Create an event log sink
-	boost::shared_ptr<DefaultSink> sink = boost::make_shared<DefaultSink>();
+	
 
-#ifndef NDEBUG
+#ifdef MOOSE_TOOLS_CONSOLE_LOG
+
 	// We have to provide an empty deleter to avoid destroying the global stream object
 	boost::shared_ptr<std::ostream> stream(&std::clog, boost::null_deleter());
-	boost::shared_ptr<ConsoleSink> csink = boost::make_shared<ConsoleSink>();
-	csink->locked_backend()->add_stream(stream);
+	boost::shared_ptr<ConsoleSink> console_sink = boost::make_shared<ConsoleSink>();
+	console_sink->locked_backend()->add_stream(stream);
 	
-	csink->set_formatter(
+	console_sink->set_formatter(
 		expr::stream
 		<< "[" << timestamp << "] "
 		<< severity
@@ -83,38 +83,50 @@ void init_logging(void) {
 );
 #endif
 
-#ifndef MOOSE_TOOLS_EVENT_LOG
+
+#ifdef MOOSE_TOOLS_FILE_LOG
+	boost::shared_ptr<FileSink> file_sink = boost::make_shared<FileSink>();
+
 	// Add a stream to write log to
 	boost::shared_ptr<std::ofstream> ofstr = boost::make_shared<std::ofstream>("default.log");
-	sink->locked_backend()->add_stream(ofstr);
-#endif
+	file_sink->locked_backend()->add_stream(ofstr);
 
-	sink->set_formatter(
+	file_sink->set_formatter(
 		expr::stream
 			<< expr::attr< unsigned int >("LineID") << ": "
 			<< expr::smessage
-			<< " (" << expr::attr< std::string >("Scope") << ")"
 		);
+#endif
 
 
 #ifdef MOOSE_TOOLS_EVENT_LOG
+	// Create an event log sink
+	boost::shared_ptr<EventSink> event_sink = boost::make_shared<EventSink>();
+
 	// We'll have to map our custom levels to the event log event types
 	sinks::event_log::custom_event_type_mapping< severity_level > mapping("Severity");
 	mapping[debug] = sinks::event_log::success;
 	mapping[normal] = sinks::event_log::info;
 	mapping[warning] = sinks::event_log::warning;
 	mapping[error] = sinks::event_log::error;
-	sink->locked_backend()->set_event_type_mapper(mapping);
+	event_sink->locked_backend()->set_event_type_mapper(mapping);
+
+	logging::core::get()->add_sink(event_sink);
 #endif
 
-	// Add the sink to the core
-	logging::core::get()->add_sink(sink);
+	// Add the default sink to the core
+#ifdef MOOSE_TOOLS_CONSOLE_LOG
+	logging::core::get()->add_sink(console_sink);
+#endif
+#ifdef MOOSE_TOOLS_FILE_LOG
+	logging::core::get()->add_sink(file_sink);
+#endif
 
-#ifndef NDEBUG
-	logging::core::get()->add_sink(csink);
-#else
+
+
+#ifdef _NDEBUG
 	logging::core::get()->set_filter(
-		logging::trivial::severity >= logging::trivial::info
+		logging::trivial::severity >= logging::trivial::warning
 	);
 #endif
 //	logging::core::get()->set_filter(
@@ -137,13 +149,13 @@ void init_logging(void) {
     boost::shared_ptr<DefaultSink> sink = boost::make_shared<DefaultSink>(
                 logging::keywords::facility = sinks::syslog::user);
 
-#ifndef NDEBUG
+#ifdef MOOSE_TOOLS_CONSOLE_LOG
 	// We have to provide an empty deleter to avoid destroying the global stream object
 	boost::shared_ptr<std::ostream> stream(&std::clog, boost::null_deleter());
-	boost::shared_ptr<ConsoleSink> csink = boost::make_shared<ConsoleSink>();
-	csink->locked_backend()->add_stream(stream);
+	boost::shared_ptr<ConsoleSink> console_sink = boost::make_shared<ConsoleSink>();
+	console_sink->locked_backend()->add_stream(stream);
 
-	csink->set_formatter(
+	console_sink->set_formatter(
 		expr::stream
 		<< "[" << timestamp << "] "
 		<< severity
@@ -164,8 +176,8 @@ void init_logging(void) {
 	// Add the sink to the core
 	logging::core::get()->add_sink(sink);
 
-#ifndef NDEBUG
-	logging::core::get()->add_sink(csink);
+#ifdef MOOSE_TOOLS_CONSOLE_LOG
+	logging::core::get()->add_sink(console_sink);
 #endif
 
 	logging::add_common_attributes();

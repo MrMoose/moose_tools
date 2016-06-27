@@ -32,23 +32,27 @@ enum severity_level {
 	critical
 };
 
-#ifdef _WIN32
 
 #ifdef MOOSE_TOOLS_EVENT_LOG
 	// Complete sink type
-	typedef boost::log::sinks::synchronous_sink< boost::log::sinks::simple_event_log_backend > DefaultSink;
-#else
-	// log to file instead when insufficient rights
-	typedef boost::log::sinks::synchronous_sink< boost::log::sinks::text_ostream_backend > DefaultSink;
+	typedef boost::log::sinks::synchronous_sink< boost::log::sinks::simple_event_log_backend > EventSink;
 #endif
 
+#ifdef MOOSE_TOOLS_FILE_LOG
+	// log to file instead when insufficient rights
+	typedef boost::log::sinks::synchronous_sink< boost::log::sinks::text_ostream_backend > FileSink;
+#endif
+
+#ifdef _WIN32
+	// what shall be default on windows?
+	typedef boost::log::sinks::synchronous_sink< boost::log::sinks::text_ostream_backend > DefaultSink;
 #else
 	// Complete sink type
 	typedef boost::log::sinks::synchronous_sink< boost::log::sinks::syslog_backend > DefaultSink;
-
 #endif
 
 typedef boost::log::sinks::synchronous_sink< boost::log::sinks::text_ostream_backend > ConsoleSink;
+
 typedef boost::log::sources::severity_logger_mt< severity_level > DefaultLogger;
 
 /*! \brief initialize boost logging

@@ -55,7 +55,19 @@ if (${MOOSE_TOOLS_EVENT_LOG})
 	add_definitions(-DMOOSE_TOOLS_EVENT_LOG)
 endif()
 
-if (${UNREAL})
+set(MOOSE_TOOLS_CONSOLE_LOG TRUE CACHE BOOL "Set to true if you want to log to log to console stdout")
+
+if (${MOOSE_TOOLS_CONSOLE_LOG})
+	add_definitions(-DMOOSE_TOOLS_CONSOLE_LOG)
+endif()
+
+set(MOOSE_TOOLS_FILE_LOG TRUE CACHE BOOL "Set to true if for file log out to default.log")
+
+if (${MOOSE_TOOLS_FILE_LOG})
+	add_definitions(-DMOOSE_TOOLS_FILE_LOG)
+endif()
+
+if (${MOOSE_STATIC_BUILD})
 	add_library(moose_tools STATIC ${MOOSE_TOOLS_SRC} ${MOOSE_TOOLS_HDR})
 else()
 	add_definitions(-DMOOSE_TOOLS_DLL)
@@ -65,8 +77,6 @@ endif()
 target_link_libraries(moose_tools
 	${Boost_LIBRARIES}
 )
-
-
 
 add_subdirectory(test)
 enable_testing()
