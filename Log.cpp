@@ -122,16 +122,11 @@ void init_logging(void) {
 	logging::core::get()->add_sink(file_sink);
 #endif
 
-
-
-#ifdef _NDEBUG
+#ifndef _DEBUG
 	logging::core::get()->set_filter(
-		logging::trivial::severity >= logging::trivial::warning
+		severity >= severity_level::warning
 	);
 #endif
-//	logging::core::get()->set_filter(
-//		logging::trivial::severity >= logging::trivial::info
-//	);
 
 	logging::add_common_attributes();
 	logging::core::get()->add_global_attribute("Scope", boost::log::attributes::named_scope());
