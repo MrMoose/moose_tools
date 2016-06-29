@@ -159,6 +159,20 @@ void init_logging(void) {
 	);
 #endif
 
+#ifdef MOOSE_TOOLS_FILE_LOG
+	boost::shared_ptr<FileSink> file_sink = boost::make_shared<FileSink>();
+
+	// Add a stream to write log to
+	boost::shared_ptr<std::ofstream> ofstr = boost::make_shared<std::ofstream>("default.log");
+	file_sink->locked_backend()->add_stream(ofstr);
+
+	file_sink->set_formatter(
+		expr::stream
+		<< expr::attr< unsigned int >("LineID") << ": "
+		<< expr::smessage
+	);
+#endif
+
 	sink->set_formatter(
 		expr::stream
 			<< expr::attr< unsigned int >("LineID") << ": "
@@ -173,6 +187,15 @@ void init_logging(void) {
 
 #ifdef MOOSE_TOOLS_CONSOLE_LOG
 	logging::core::get()->add_sink(console_sink);
+#endif
+#ifdef MOOSE_TOOLS_FILE_LOG
+	logging::core::get()->add_sink(file_sink);
+#endif
+
+#ifndef _DEBUG
+	logging::core::get()->set_filter(
+		severity >= severity_level::warning
+	);
 #endif
 
 	logging::add_common_attributes();
