@@ -26,7 +26,7 @@ BOOST_AUTO_TEST_CASE(Statistics) {
 	// well, how can I test randomness.
 	// been doing it wrong some times before.	
 	// let's try and use boost accumulators
-	accumulator_set<unsigned int, stats<tag::mean> > acc;
+	accumulator_set<float, stats<tag::mean> > acc;
 
 	// push a random number between 0 and 100 a geat many 
 	// times and assume an average of 50.
@@ -47,7 +47,8 @@ BOOST_AUTO_TEST_CASE(SmallStatistics) {
 	accumulator_set<double, stats<tag::mean> > acc;
 	for (unsigned int i = 0; i < 100000; ++i) {
 		
-		BOOST_REQUIRE_NO_THROW(acc(static_cast<double>(moose::tools::urand(2))));
+		double val = static_cast<double>(moose::tools::urand(2));
+		BOOST_REQUIRE_NO_THROW(acc(val));
 	}
 	
 	BOOST_CHECK_CLOSE(mean(acc), 1.0, 1.0);
