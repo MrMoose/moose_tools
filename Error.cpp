@@ -8,8 +8,32 @@
 #include <boost/spirit/include/karma.hpp>
 #include <boost/spirit/home/karma/numeric/real_policies.hpp>
 
+#include <boost/thread/tss.hpp>
+
 namespace moose {
 namespace tools {
+
+//----------------------------------------------------------------------------------------------------------------------
+namespace {
+	boost::thread_specific_ptr<std::string> tls_error_message;
+
+	inline std::string* get_tls_error_message() {
+		if (!tls_error_message.get()) {
+			tls_error_message.reset(new std::string{});
+		}
+		return tls_error_message.get();
+	}
+} // namespace
+
+//----------------------------------------------------------------------------------------------------------------------
+std::string get_last_error() {
+	return *get_tls_error_message();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void set_last_error(const std::string& n_error_message) {
+	*get_tls_error_message() = n_error_message;
+}
 
 namespace karma = boost::spirit::karma;
 namespace ascii = boost::spirit::ascii;

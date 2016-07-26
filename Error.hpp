@@ -16,6 +16,9 @@
 
 namespace moose {
 namespace tools {
+
+MOOSE_TOOLS_API std::string get_last_error();
+MOOSE_TOOLS_API void set_last_error(const std::string& n_error_message);
 	
 struct MOOSE_TOOLS_API moose_error: virtual std::exception, virtual boost::exception {
 
