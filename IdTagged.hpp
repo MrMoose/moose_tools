@@ -13,7 +13,7 @@
 namespace moose {
 namespace tools {
 
-/*! \brief Give a class an ID which is randomly generated in c'tor
+/*! @brief Give a class an ID which is randomly generated in c'tor
  *  which can not be changed afterwards
  *  \todo consider making this noncopyable for semantics
  */
@@ -30,7 +30,18 @@ class IdTagged {
 				: m_id(moose::tools::urand()) {
 		}
 
-		/*! \brief you can also give in the ID of course but only in protected c'tor
+		//! This c'tor allows to specify an id within a given range
+		//! \throw std::bad_alloc when out of memory on first use
+		IdTagged(const id_type n_id_min, const id_type n_id_max)
+			: m_id(moose::tools::urand(n_id_max)) {
+
+			while (m_id < n_id_min) {
+				// casting constness away in the c'tor because I can
+				const_cast<id_type &>(m_id) = moose::tools::urand(n_id_max);
+			}
+		}
+
+		/*! @brief you can also give in the ID of course but only in protected c'tor
 		 *   so the derived class decides whether to offer this possibility but only
 		 *   at creation time
 		 */
@@ -48,7 +59,7 @@ class IdTagged {
 			return m_id;
 		}
 
-		/*! \brief multi-purpose key extractor
+		/*! @brief multi-purpose key extractor
 			And this is a key extractor function for use in containers such as 
 			multi-index
 		 */

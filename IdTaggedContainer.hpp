@@ -149,7 +149,7 @@ class IdTaggedContainer : public Incarnated< IdTaggedContainer<TaggedType> > {
 			return !this->operator==(n_other);
 		}
 
-		/*! @brief add a new object and return its id
+		/*! @brief add a new object and return if it was inserted
 		  
 			Objects already present will not be inserted
 
