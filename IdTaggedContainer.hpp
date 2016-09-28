@@ -115,10 +115,17 @@ class IdTaggedContainer : public Incarnated< IdTaggedContainer<TaggedType> > {
 
 		IdTaggedContainer() = default;
 		IdTaggedContainer(const IdTaggedContainer &n_other) = delete;  // well, we could deep copy it...
-		IdTaggedContainer(IdTaggedContainer &&n_other) = default;
-		virtual ~IdTaggedContainer() noexcept = default;
-		IdTaggedContainer< TaggedType > &operator=(IdTaggedContainer &&) = default;
+		IdTaggedContainer(IdTaggedContainer &&n_other) noexcept {
+		
+			std::swap(m_objects, n_other.m_objects);
+		};
 
+		virtual ~IdTaggedContainer() noexcept = default;
+		IdTaggedContainer< TaggedType > &operator=(IdTaggedContainer &&n_other) noexcept {
+		
+			std::swap(m_objects, n_other.m_objects);
+			return *this;
+		}
 
 		/*! @brief tell if both containers contain the exact same ids
 			only the ids of the objects are compared, not their actual derived content 
