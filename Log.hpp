@@ -46,9 +46,23 @@ enum severity_level {
 #ifdef _WIN32
 	// what shall be default on windows?
 	typedef boost::log::sinks::synchronous_sink< boost::log::sinks::text_ostream_backend > DefaultSink;
+
+#ifdef MOOSE_TOOLS_LOG_FILE_NAME
+#define MOOSE_TOOLS_LOG_FILE MOOSE_TOOLS_LOG_FILE_DIR ## "\\" ## MOOSE_TOOLS_LOG_FILE_NAME
+#else
+#define MOOSE_TOOLS_LOG_FILE MOOSE_TOOLS_LOG_FILE_DIR ## "\\default.log"
+#endif // MOOSE_TOOLS_LOG_FILE_NAME
+
 #else
 	// Complete sink type
 	typedef boost::log::sinks::synchronous_sink< boost::log::sinks::syslog_backend > DefaultSink;
+
+#ifdef MOOSE_TOOLS_LOG_FILE_NAME
+#define MOOSE_TOOLS_LOG_FILE MOOSE_TOOLS_LOG_FILE_DIR ## "/" ## MOOSE_TOOLS_LOG_FILE_NAME
+#else
+#define MOOSE_TOOLS_LOG_FILE MOOSE_TOOLS_LOG_FILE_DIR ## "/default.log"
+#endif // MOOSE_TOOLS_LOG_FILE_NAME
+
 #endif
 
 typedef boost::log::sinks::synchronous_sink< boost::log::sinks::text_ostream_backend > ConsoleSink;

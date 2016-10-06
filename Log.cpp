@@ -18,6 +18,7 @@
 #include <boost/log/sources/global_logger_storage.hpp>
 #include <boost/log/sources/record_ostream.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/date_time/posix_time/ptime.hpp>
 #include <boost/date_time/posix_time/posix_time_io.hpp>
@@ -28,6 +29,8 @@
 
 namespace moose {
 namespace tools {
+
+namespace fs = boost::filesystem;
 
 // Declare attribute keywords
 BOOST_LOG_ATTRIBUTE_KEYWORD(severity, "Severity", severity_level)
@@ -62,7 +65,31 @@ void init_logging(void) {
 	namespace sinks = boost::log::sinks;
 	namespace expr = boost::log::expressions;
 
-	
+	logging::formatter fmt = expr::stream
+		<< expr::attr< unsigned int >("LineID") << ": "
+		<< "[" << timestamp << "] "
+		<< severity
+		<< expr::smessage;
+
+#ifdef MOOSE_TOOLS_FILE_LOG
+
+#ifdef MOOSE_TOOLS_LOG_FILE_DIR
+	boost::system::error_code ignored;
+	fs::create_directories(MOOSE_TOOLS_LOG_FILE_DIR, ignored);
+#endif
+
+	boost::shared_ptr<FileSink> file_sink = boost::make_shared<FileSink>();
+
+	// Add a stream to write log to
+	boost::shared_ptr<std::ofstream> ofstr = boost::make_shared<std::ofstream>(MOOSE_TOOLS_LOG_FILE);
+	file_sink->locked_backend()->add_stream(ofstr);
+
+	file_sink->set_formatter(fmt);
+#ifndef _DEBUG
+	file_sink->set_filter(severity >= severity_level::normal);
+#endif // _DEBUG
+	logging::core::get()->add_sink(file_sink);
+#endif // MOOSE_TOOLS_FILE_LOG
 
 #ifdef MOOSE_TOOLS_CONSOLE_LOG
 
@@ -70,34 +97,12 @@ void init_logging(void) {
 	boost::shared_ptr<std::ostream> stream(&std::clog, boost::null_deleter());
 	boost::shared_ptr<ConsoleSink> console_sink = boost::make_shared<ConsoleSink>();
 	console_sink->locked_backend()->add_stream(stream);
-	
-	console_sink->set_formatter(
-		expr::stream
-		<< "[" << timestamp << "] "
-		<< severity
-		<< expr::smessage
-//		<< " (" << expr::attr< std::string >("Scope") << ")"
-//		<< " (" << expr::format_named_scope("Scope",
-//			boost::log::keywords::format = "%n (%f:%l)",
-//			boost::log::keywords::iteration = expr::reverse) << ")"
-);
+	console_sink->set_formatter(fmt);
+#ifndef _DEBUG
+	console_sink->set_filter(severity >= severity_level::warning);
+#endif // _DEBUG
+	logging::core::get()->add_sink(console_sink);
 #endif
-
-
-#ifdef MOOSE_TOOLS_FILE_LOG
-	boost::shared_ptr<FileSink> file_sink = boost::make_shared<FileSink>();
-
-	// Add a stream to write log to
-	boost::shared_ptr<std::ofstream> ofstr = boost::make_shared<std::ofstream>("default.log");
-	file_sink->locked_backend()->add_stream(ofstr);
-
-	file_sink->set_formatter(
-		expr::stream
-			<< expr::attr< unsigned int >("LineID") << ": "
-			<< expr::smessage
-		);
-#endif
-
 
 #ifdef MOOSE_TOOLS_EVENT_LOG
 	// Create an event log sink
@@ -110,29 +115,26 @@ void init_logging(void) {
 	mapping[warning] = sinks::event_log::warning;
 	mapping[error] = sinks::event_log::error;
 	event_sink->locked_backend()->set_event_type_mapper(mapping);
-
-	logging::core::get()->add_sink(event_sink);
-#endif
-
-	// Add the default sink to the core
-#ifdef MOOSE_TOOLS_CONSOLE_LOG
-	logging::core::get()->add_sink(console_sink);
-#endif
-#ifdef MOOSE_TOOLS_FILE_LOG
-	logging::core::get()->add_sink(file_sink);
-#endif
-
 #ifndef _DEBUG
-	logging::core::get()->set_filter(
-		severity >= severity_level::warning
-	);
+	event_sink->set_filter(severity >= severity_level::warning);
+#endif // _DEBUG
+	logging::core::get()->add_sink(event_sink);
 #endif
 
 	logging::add_common_attributes();
 	logging::core::get()->add_global_attribute("Scope", boost::log::attributes::named_scope());
 }
 
+
+
+
+
 #else  // Linux init_logging()
+
+
+
+
+
 
 void init_logging(void) {
 	
@@ -140,9 +142,37 @@ void init_logging(void) {
 	namespace sinks = boost::log::sinks;
 	namespace expr = boost::log::expressions;
 
+	logging::formatter fmt = expr::stream
+		<< expr::attr< unsigned int >("LineID") << ": "
+		<< "[" << timestamp << "] "
+		<< severity
+		<< expr::smessage;
+
+
 	// Create an event log sink
     boost::shared_ptr<DefaultSink> sink = boost::make_shared<DefaultSink>(
                 logging::keywords::facility = sinks::syslog::user);
+
+#ifdef MOOSE_TOOLS_FILE_LOG
+
+#ifdef MOOSE_TOOLS_LOG_FILE_DIR
+	boost::system::error_code ignored;
+	fs::create_directories(MOOSE_TOOLS_LOG_FILE_DIR, ignored);
+#endif
+
+	boost::shared_ptr<FileSink> file_sink = boost::make_shared<FileSink>();
+
+	// Add a stream to write log to
+	boost::shared_ptr<std::ofstream> ofstr = boost::make_shared<std::ofstream>(MOOSE_TOOLS_LOG_FILE);
+
+	file_sink->locked_backend()->add_stream(ofstr);
+
+	file_sink->set_formatter(fmt);
+#ifndef _DEBUG
+	file_sink->set_filter(severity >= severity_level::normal);
+#endif // _DEBUG
+	logging::core::get()->add_sink(file_sink);
+#endif
 
 #ifdef MOOSE_TOOLS_CONSOLE_LOG
 	// We have to provide an empty deleter to avoid destroying the global stream object
@@ -150,53 +180,17 @@ void init_logging(void) {
 	boost::shared_ptr<ConsoleSink> console_sink = boost::make_shared<ConsoleSink>();
 	console_sink->locked_backend()->add_stream(stream);
 
-	console_sink->set_formatter(
-		expr::stream
-		<< "[" << timestamp << "] "
-		<< severity
-		<< expr::smessage
-		<< " (" << expr::attr< std::string >("Scope") << ")"
-	);
+	console_sink->set_formatter(fmt);
+#ifndef _DEBUG
+	console_sink->set_filter(severity >= severity_level::warning);
+#endif // _DEBUG
+	logging::core::get()->add_sink(console_sink);
 #endif
-
-#ifdef MOOSE_TOOLS_FILE_LOG
-	boost::shared_ptr<FileSink> file_sink = boost::make_shared<FileSink>();
-
-	// Add a stream to write log to
-	boost::shared_ptr<std::ofstream> ofstr = boost::make_shared<std::ofstream>("default.log");
-	file_sink->locked_backend()->add_stream(ofstr);
-
-	file_sink->set_formatter(
-		expr::stream
-		<< expr::attr< unsigned int >("LineID") << ": "
-		<< expr::smessage
-	);
-#endif
-
-	sink->set_formatter(
-		expr::stream
-			<< expr::attr< unsigned int >("LineID") << ": "
-			<< expr::smessage
-			<< " (" << expr::attr< std::string >("Scope") << ")"
-		);
 
     sink->locked_backend()->set_severity_mapper(sinks::syslog::direct_severity_mapping<int>("Severity"));
 
 	// Add the sink to the core
 	logging::core::get()->add_sink(sink);
-
-#ifdef MOOSE_TOOLS_CONSOLE_LOG
-	logging::core::get()->add_sink(console_sink);
-#endif
-#ifdef MOOSE_TOOLS_FILE_LOG
-	logging::core::get()->add_sink(file_sink);
-#endif
-
-#ifndef _DEBUG
-	logging::core::get()->set_filter(
-		severity >= severity_level::warning
-	);
-#endif
 
 	logging::add_common_attributes();
 	logging::core::get()->add_global_attribute("Scope", boost::log::attributes::named_scope());
