@@ -22,6 +22,9 @@
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/date_time/posix_time/ptime.hpp>
 #include <boost/date_time/posix_time/posix_time_io.hpp>
+#include <boost/date_time/gregorian_calendar.hpp>
+#include <boost/date_time/date_facet.hpp>
+#include <boost/date_time/gregorian/gregorian_io.hpp>
 
 #include <string>
 #include <iostream>
@@ -56,6 +59,40 @@ std::basic_ostream< CharT, TraitsT > &operator<<(std::basic_ostream< CharT, Trai
 	return n_os;
 }
 
+void prepare_log_file() {
+
+	using namespace boost::posix_time;
+
+#ifdef MOOSE_TOOLS_LOG_FILE_DIR
+	boost::system::error_code ignored;
+	fs::create_directories(MOOSE_TOOLS_LOG_FILE_DIR, ignored);
+#endif
+	
+	// If the log file already exists, try to rotate it away and append the current time as string
+	std::string logfile(MOOSE_TOOLS_LOG_FILE);
+	if (fs::exists(MOOSE_TOOLS_LOG_FILE)) {
+		boost::posix_time::ptime now = boost::posix_time::second_clock::local_time();
+		std::stringstream ss_date;
+		std::stringstream ss_time;
+
+		boost::gregorian::date_facet* date_facet = new boost::gregorian::date_facet();
+		date_facet->format("%Y-%m-%d_");
+		ss_date.imbue(std::locale(std::locale::classic(), date_facet));
+
+		boost::posix_time::time_facet* time_facet = new boost::posix_time::time_facet();
+		time_facet->format("%H-%M-%S");
+		ss_time.imbue(std::locale(std::locale::classic(), time_facet));
+
+		ss_date << now.date();
+		ss_time << now;
+		logfile.append("_");
+		logfile.append(ss_date.str()).append(ss_time.str());
+		fs::copy(MOOSE_TOOLS_LOG_FILE, logfile, ignored);
+	}
+
+
+}
+
 
 #ifdef _WIN32
 
@@ -73,10 +110,7 @@ void init_logging(void) {
 
 #ifdef MOOSE_TOOLS_FILE_LOG
 
-#ifdef MOOSE_TOOLS_LOG_FILE_DIR
-	boost::system::error_code ignored;
-	fs::create_directories(MOOSE_TOOLS_LOG_FILE_DIR, ignored);
-#endif
+	prepare_log_file();
 
 	boost::shared_ptr<FileSink> file_sink = boost::make_shared<FileSink>();
 
@@ -155,10 +189,7 @@ void init_logging(void) {
 
 #ifdef MOOSE_TOOLS_FILE_LOG
 
-#ifdef MOOSE_TOOLS_LOG_FILE_DIR
-	boost::system::error_code ignored;
-	fs::create_directories(MOOSE_TOOLS_LOG_FILE_DIR, ignored);
-#endif
+	prepare_log_file();
 
 	boost::shared_ptr<FileSink> file_sink = boost::make_shared<FileSink>();
 
