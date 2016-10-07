@@ -89,8 +89,6 @@ void prepare_log_file() {
 		logfile.append(ss_date.str()).append(ss_time.str());
 		fs::copy(MOOSE_TOOLS_LOG_FILE, logfile, ignored);
 	}
-
-
 }
 
 
