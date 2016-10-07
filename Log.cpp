@@ -34,6 +34,8 @@
 namespace moose {
 namespace tools {
 
+boost::filesystem::path s_logfile_name;
+
 namespace fs = boost::filesystem;
 
 // Declare attribute keywords

@@ -33,8 +33,9 @@ enum severity_level {
 	critical
 };
 
-
-static boost::filesystem::path s_logfile_name;
+//! global storage for the name.
+//! Careful, not mutexed as only initialized once and then read only.
+extern boost::filesystem::path s_logfile_name;
 
 #ifdef MOOSE_TOOLS_EVENT_LOG
 	// Complete sink type
