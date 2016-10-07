@@ -124,7 +124,7 @@ void init_logging(void) {
 	// Add a stream to write log to
 	boost::shared_ptr<std::ofstream> ofstr = boost::make_shared<boost::filesystem::ofstream>(s_logfile_name);
 	file_sink->locked_backend()->add_stream(ofstr);
-
+	file_sink->locked_backend()->auto_flush(true);
 	file_sink->set_formatter(fmt);
 #ifndef _DEBUG
 	file_sink->set_filter(severity >= severity_level::normal);
@@ -204,7 +204,7 @@ void init_logging(void) {
 	boost::shared_ptr<std::ofstream> ofstr = boost::make_shared<boost::filesystem::ofstream>(s_logfile_name);
 
 	file_sink->locked_backend()->add_stream(ofstr);
-
+	file_sink->locked_backend()->auto_flush(true);
 	file_sink->set_formatter(fmt);
 #ifndef _DEBUG
 	file_sink->set_filter(severity >= severity_level::normal);
