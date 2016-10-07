@@ -19,6 +19,7 @@
 #include <boost/log/sources/record_ostream.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/fstream.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
 #include <boost/date_time/posix_time/ptime.hpp>
 #include <boost/date_time/posix_time/posix_time_io.hpp>
@@ -64,13 +65,19 @@ void prepare_log_file() {
 	using namespace boost::posix_time;
 
 #ifdef MOOSE_TOOLS_LOG_FILE_DIR
+	s_logfile_name = fs::path(MOOSE_TOOLS_LOG_FILE_DIR);
 	boost::system::error_code ignored;
-	fs::create_directories(MOOSE_TOOLS_LOG_FILE_DIR, ignored);
+	fs::create_directories(s_logfile_name, ignored);
 #endif
-	
+
+#ifdef MOOSE_TOOLS_LOG_FILE_NAME
+	s_logfile_name /= MOOSE_TOOLS_LOG_FILE_NAME;
+#else
+	s_logfile_name /= "default.log";
+#endif
+		
 	// If the log file already exists, try to rotate it away and append the current time as string
-	std::string logfile(MOOSE_TOOLS_LOG_FILE);
-	if (fs::exists(MOOSE_TOOLS_LOG_FILE)) {
+	if (fs::exists(s_logfile_name)) {
 		boost::posix_time::ptime now = boost::posix_time::second_clock::local_time();
 		std::stringstream ss_date;
 		std::stringstream ss_time;
@@ -85,9 +92,11 @@ void prepare_log_file() {
 
 		ss_date << now.date();
 		ss_time << now;
-		logfile.append("_");
-		logfile.append(ss_date.str()).append(ss_time.str());
-		fs::copy(MOOSE_TOOLS_LOG_FILE, logfile, ignored);
+		
+		fs::path backup_location(s_logfile_name);
+		backup_location.replace_extension("log_" + ss_date.str() + ss_time.str());
+	
+		fs::copy(s_logfile_name, backup_location, ignored);
 	}
 }
 
@@ -113,7 +122,7 @@ void init_logging(void) {
 	boost::shared_ptr<FileSink> file_sink = boost::make_shared<FileSink>();
 
 	// Add a stream to write log to
-	boost::shared_ptr<std::ofstream> ofstr = boost::make_shared<std::ofstream>(MOOSE_TOOLS_LOG_FILE);
+	boost::shared_ptr<std::ofstream> ofstr = boost::make_shared<boost::filesystem::ofstream>(s_logfile_name);
 	file_sink->locked_backend()->add_stream(ofstr);
 
 	file_sink->set_formatter(fmt);
@@ -192,7 +201,7 @@ void init_logging(void) {
 	boost::shared_ptr<FileSink> file_sink = boost::make_shared<FileSink>();
 
 	// Add a stream to write log to
-	boost::shared_ptr<std::ofstream> ofstr = boost::make_shared<std::ofstream>(MOOSE_TOOLS_LOG_FILE);
+	boost::shared_ptr<std::ofstream> ofstr = boost::make_shared<boost::filesystem::ofstream>(s_logfile_name);
 
 	file_sink->locked_backend()->add_stream(ofstr);
 
