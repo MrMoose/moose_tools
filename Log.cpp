@@ -128,9 +128,9 @@ void init_logging(void) {
 	file_sink->locked_backend()->add_stream(ofstr);
 	file_sink->locked_backend()->auto_flush(true);
 	file_sink->set_formatter(fmt);
-#ifndef _DEBUG
+#ifndef MOOSE_DEBUG
 	file_sink->set_filter(severity >= severity_level::normal);
-#endif // _DEBUG
+#endif // MOOSE_DEBUG
 	logging::core::get()->add_sink(file_sink);
 #endif // MOOSE_TOOLS_FILE_LOG
 
@@ -141,9 +141,9 @@ void init_logging(void) {
 	boost::shared_ptr<ConsoleSink> console_sink = boost::make_shared<ConsoleSink>();
 	console_sink->locked_backend()->add_stream(stream);
 	console_sink->set_formatter(fmt);
-#ifndef _DEBUG
+#ifndef MOOSE_DEBUG
 	console_sink->set_filter(severity >= severity_level::warning);
-#endif // _DEBUG
+#endif // MOOSE_DEBUG
 	logging::core::get()->add_sink(console_sink);
 #endif
 
@@ -158,9 +158,9 @@ void init_logging(void) {
 	mapping[warning] = sinks::event_log::warning;
 	mapping[error] = sinks::event_log::error;
 	event_sink->locked_backend()->set_event_type_mapper(mapping);
-#ifndef _DEBUG
+#ifndef MOOSE_DEBUG
 	event_sink->set_filter(severity >= severity_level::warning);
-#endif // _DEBUG
+#endif // MOOSE_DEBUG
 	logging::core::get()->add_sink(event_sink);
 #endif
 
@@ -208,9 +208,9 @@ void init_logging(void) {
 	file_sink->locked_backend()->add_stream(ofstr);
 	file_sink->locked_backend()->auto_flush(true);
 	file_sink->set_formatter(fmt);
-#ifndef _DEBUG
+#ifndef MOOSE_DEBUG
 	file_sink->set_filter(severity >= severity_level::normal);
-#endif // _DEBUG
+#endif // MOOSE_DEBUG
 	logging::core::get()->add_sink(file_sink);
 #endif
 
@@ -221,9 +221,9 @@ void init_logging(void) {
 	console_sink->locked_backend()->add_stream(stream);
 
 	console_sink->set_formatter(fmt);
-#ifndef _DEBUG
+#ifndef MOOSE_DEBUG
 	console_sink->set_filter(severity >= severity_level::warning);
-#endif // _DEBUG
+#endif // MOOSE_DEBUG
 	logging::core::get()->add_sink(console_sink);
 #endif
 
