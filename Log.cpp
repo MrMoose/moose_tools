@@ -30,6 +30,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <cstdlib>
 
 namespace moose {
 namespace tools {
@@ -77,7 +78,13 @@ void prepare_log_file() {
 #else
 	s_logfile_name /= "default.log";
 #endif
-		
+	
+	// Log file name can be overridden at runtime by env variable. Location stays the same.
+	const char *log_name_env = getenv("MOOSE_LOG_FILE_NAME");
+	if (log_name_env) {
+		s_logfile_name = fs::path(MOOSE_TOOLS_LOG_FILE_DIR) / fs::path(log_name_env);
+	}
+
 	// If the log file already exists, try to rotate it away and append the current time as string
 	if (fs::exists(s_logfile_name)) {
 		boost::posix_time::ptime now = boost::posix_time::second_clock::local_time();
