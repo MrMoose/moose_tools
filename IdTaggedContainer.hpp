@@ -180,6 +180,28 @@ class IdTaggedContainer : public Incarnated< IdTaggedContainer<TaggedType> > {
 			}
 		}
 
+		/*! @brief insert a new object, replacing an existing one
+
+			Objects already present will be deleted.
+
+			@return true if object was present
+
+			@throw internal_error on null
+			@return true if object was added
+		*/
+		bool replace(pointer_type n_object) {
+
+			if (!n_object) {
+				BOOST_THROW_EXCEPTION(internal_error() << error_message("null pointer given"));
+			}
+
+			objects_by_id &idx = m_objects.template get<by_id>();
+			bool ret = (idx.erase(n_object->id()) == 1);
+			insert(n_object);
+			return ret;
+		}
+
+
 		/*! @brief remove an object by id
 
 			@return true if object was removed
@@ -264,7 +286,7 @@ class IdTaggedContainer : public Incarnated< IdTaggedContainer<TaggedType> > {
 				BOOST_THROW_EXCEPTION(internal_error() << error_message("container index out of bounds")
 					<< error_argument(n_idx));
 			}
-			// would it be better to ceck for out of bounds rather than let the idx throw?
+			// would it be better to check for out of bounds rather than let the idx throw?
 			objects_by_random &idx = m_objects.template get<by_random>();
 			return idx[n_idx];
 		}
