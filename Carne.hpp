@@ -9,6 +9,7 @@
 
 #include <boost/cstdint.hpp>
 #include <boost/atomic.hpp>
+#include <boost/type_traits/is_same.hpp>
 
 namespace moose {
 namespace tools {
@@ -69,7 +70,7 @@ class Incarnated {
 		/// implementation to increase incarnation chooses if the parent will be increased as well
 		void increase_incarnation() noexcept {
 		
-			return increase_incarnation_impl(std::is_same<ParentType, IncarnatedUnusedParent>::type());
+			return increase_incarnation_impl(typename boost::is_same<ParentType, IncarnatedUnusedParent>::type());
 		}
 	
 		bool changed(const boost::uint64_t n_known_incarnation) const noexcept {
@@ -80,13 +81,13 @@ class Incarnated {
 	private:
 
 		//! This implementation is for classes that didn't specify a parent type
-		inline void increase_incarnation_impl(std::true_type) noexcept {
+		inline void increase_incarnation_impl(boost::true_type) noexcept {
 
 			++m_incarnation;
 		}
 
 		//! This implementation is for classes which did specify a parent type
-		inline void increase_incarnation_impl(std::false_type) noexcept {
+		inline void increase_incarnation_impl(boost::false_type) noexcept {
 
 			assert(m_parent);
 
