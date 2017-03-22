@@ -6,6 +6,7 @@
 #pragma once
 #include "MooseToolsConfig.hpp"
 #include "Random.hpp"
+#include "Assert.hpp"
 
 #include <boost/cstdint.hpp>
 #include <boost/shared_ptr.hpp>
@@ -76,12 +77,12 @@ class IdTagged {
 			}
 
 			const result_type operator()(const boost::shared_ptr< IdTagged< DerivedType > > &n_o) const noexcept {
-				assert(n_o);
+				MOOSE_ASSERT(n_o);
 				return n_o->id();
 			}
 
 			result_type operator()(boost::shared_ptr< IdTagged< DerivedType > > &n_o) const noexcept {
-				assert(n_o);
+				MOOSE_ASSERT(n_o);
 				return n_o->id();
 			}
 

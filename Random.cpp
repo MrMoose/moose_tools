@@ -5,6 +5,7 @@
 
 #include "Random.hpp"
 #include "ThreadId.hpp"
+#include "Assert.hpp"
 
 #include <boost/thread/tss.hpp>
 #include <boost/chrono/chrono.hpp>
@@ -54,7 +55,7 @@ boost::uint64_t urand(const boost::uint64_t n_max) {
 
 	// get the thread local PRNG
 	boost::random::mt19937 *prng = gen();
-	assert(prng);
+	MOOSE_ASSERT(prng);
 	boost::random::uniform_int_distribution<boost::uint64_t> dist(0, n_max);
 	return dist(*prng);
 }

@@ -21,6 +21,7 @@ set(MOOSE_TOOLS_SRC
 	String.cpp
 	Homedir.cpp
 	Log.cpp
+	Assert.cpp
 	)
 
 set(MOOSE_TOOLS_HDR
@@ -37,6 +38,7 @@ set(MOOSE_TOOLS_HDR
 	String.hpp
 	Homedir.hpp
 	Log.hpp
+	Assert.hpp
 	)
 
 include_directories(

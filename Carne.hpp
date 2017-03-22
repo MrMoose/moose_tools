@@ -6,6 +6,7 @@
 #pragma once
 #include "MooseToolsConfig.hpp"
 #include "Random.hpp"
+#include "Assert.hpp"
 
 #include <boost/cstdint.hpp>
 #include <boost/atomic.hpp>
@@ -57,7 +58,7 @@ class Incarnated {
 		void set_parent(const ParentType *n_parent) {
 
 			m_parent(n_parent);
-			assert(m_parent);
+			MOOSE_ASSERT(m_parent);
 		}
 
 	public:
@@ -89,8 +90,7 @@ class Incarnated {
 		//! This implementation is for classes which did specify a parent type
 		inline void increase_incarnation_impl(boost::false_type) noexcept {
 
-			assert(m_parent);
-
+			MOOSE_ASSERT(m_parent);
 			++m_incarnation;
 			m_parent->increase_incarnation();
 		}
