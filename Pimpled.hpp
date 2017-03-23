@@ -5,9 +5,9 @@
 
 #pragma once
 #include "MooseToolsConfig.hpp"
-#include "Assert.hpp"
 
 #include <stdexcept>
+#include <cassert>
 
 namespace moose {
 namespace tools {
@@ -46,7 +46,7 @@ class Pimpled {
 		~Pimpled(void) noexcept {
 
 			Pimplee *tmp = reinterpret_cast<Pimplee *>(m_d);
-			MOOSE_ASSERT(tmp);
+			assert(tmp);
 			delete tmp;
 			m_d = nullptr;
 		}
@@ -54,19 +54,19 @@ class Pimpled {
 		PimplType &d(void) {
 			// If you see this error message, you have not called the base c'tor 
 			// Pimpled<yourType>() in your c'tors initializer list.
-			MOOSE_ASSERT(m_d);
+			assert(m_d);
 			return *m_d;
 		}
 		
 		PimplType const &d(void) const {
 			// If you see this error message, you have not called the base c'tor 
 			// Pimpled<yourType>() in your c'tors initializer list.
-			MOOSE_ASSERT(m_d);
+			assert(m_d);
 			return *m_d;
 		}
 	
 	private:
-		PimplType *m_d;
+		PimplType *m_d = nullptr;
 };
 
 }
