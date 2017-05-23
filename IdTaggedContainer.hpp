@@ -326,6 +326,12 @@ class IdTaggedContainer : public Incarnated< IdTaggedContainer<TaggedType> > {
 			return cend();
 		};
 
+		bool empty() const noexcept {
+
+			const objects_by_random &idx = m_objects.template get<by_random>();
+			return idx.empty();
+		}
+
 		const_iterator cend() const {
 
 			return const_iterator(this) + size();
