@@ -30,6 +30,12 @@ MOOSE_TOOLS_API boost::uint64_t urand();
  */
 MOOSE_TOOLS_API boost::uuids::uuid ruuid(void);
 
+/*! \brief supposedly the fasted.
+	Found this at https://stackoverflow.com/questions/1640258/need-a-fast-random-generator-for-c
+	and just took it here. All credits to original author
+ */
+MOOSE_TOOLS_API unsigned long xorshf96(void);
+
 }
 }
 
