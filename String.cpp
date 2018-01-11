@@ -29,7 +29,13 @@ struct ip4_from_str_impl {
 
 	template <typename Arg>
 	result_type operator()(const Arg n_str) const {
+
+#if BOOST_VERSION / 100000 >= 1 && BOOST_VERSION / 100 % 1000 >= 66
+		return boost::asio::ip::make_address_v4(n_str);
+#else
 		return boost::asio::ip::address_v4::from_string(n_str);
+#endif
+
 	}
 };
 
@@ -39,7 +45,11 @@ struct ip6_from_str_impl {
 
 	template <typename Arg>
 	result_type operator()(const Arg n_str) const {
+#if BOOST_VERSION / 100000 >= 1 && BOOST_VERSION / 100 % 1000 >= 66
+		return  boost::asio::ip::make_address_v6(n_str);
+#else
 		return boost::asio::ip::address_v6::from_string(n_str);
+#endif
 	}
 };
 
