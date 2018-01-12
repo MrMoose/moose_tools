@@ -16,6 +16,11 @@ namespace tools {
 //! truncate a string to at most n characters
 void MOOSE_TOOLS_API truncate(std::string &n_string, std::size_t n_length) noexcept;
 
+/*! guess a http mime type from a file extension
+	defaults to "application/text" for unrecognized endings
+*/
+std::string MOOSE_TOOLS_API mime_extension(const std::string &n_path);
+
 /*
 This should really be a template to fit into boost algos
 

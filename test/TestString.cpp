@@ -6,9 +6,19 @@
 #define BOOST_TEST_MODULE StringTests
 #include <boost/test/unit_test.hpp>
 
+#include <boost/accumulators/accumulators.hpp>
+#include <boost/accumulators/statistics/stats.hpp>
+#include <boost/accumulators/statistics/mean.hpp>
+#include <boost/accumulators/statistics/moment.hpp>
+#include <boost/chrono.hpp>
+
+
 #include "../String.hpp"
 #include "../Error.hpp"
+#include "../Random.hpp"
+
 #include <set>
+#include <iostream>
 
 using namespace moose::tools;
 
@@ -26,8 +36,6 @@ BOOST_AUTO_TEST_CASE(TruncateSimple) {
 	BOOST_CHECK(s.empty());
 }
 
-
-
 BOOST_AUTO_TEST_CASE(ParseIp) {
 
 	boost::asio::ip::address addr;
@@ -38,5 +46,12 @@ BOOST_AUTO_TEST_CASE(ParseIp) {
 	BOOST_CHECK_THROW(from_google_ep("ipv6:[2a02:810dsgdc:adb3:f561:144f:89f5]:61176", addr, port), network_error);
 	BOOST_CHECK_THROW(from_google_ep("ipdyfa6", addr, port), network_error);
 	BOOST_CHECK_THROW(from_google_ep("ipv4:192.", addr, port), network_error);
+}
 
+BOOST_AUTO_TEST_CASE(MimeTypeGuess) {
+
+	BOOST_CHECK(mime_extension("default") == "application/text");
+	BOOST_CHECK(mime_extension("test.html") == "text/html");
+	BOOST_CHECK(mime_extension("/longer/path/test.html") == "text/html");
+	BOOST_CHECK(mime_extension("http://www.test.de/longer/path/test.ico") == "image/vnd.microsoft.icon");
 }

@@ -12,6 +12,9 @@
 #include <boost/fusion/include/vector.hpp>
 #include <boost/spirit/include/karma.hpp>
 #include <boost/asio.hpp>
+#include <boost/algorithm/string.hpp>
+
+#include <map>
 
 namespace moose {
 namespace tools {
@@ -122,6 +125,55 @@ std::string itoa(const boost::uint64_t n_number) {
 	std::back_insert_iterator<std::string> sink(ret);
 	karma::generate(sink, karma::uint_, n_number);   // why should this fail?
 	return ret;
+}
+
+const std::map<const std::string, const std::string> mime_extensions = {
+	{ "htm",  "text/html" },
+	{ "html", "text/html" },
+	{ "php",  "text/html" },
+	{ "css",  "text/css" },
+	{ "js",   "application/javascript" },
+	{ "json", "application/json" },
+	{ "xml",  "application/xml" },
+	{ "swf",  "application/x-shockwave-flash" },
+	{ "flv",  "video/x-flv" },
+	{ "png",  "image/png" },
+	{ "jpe",  "image/jpeg" },
+	{ "jpeg", "image/jpeg" },
+	{ "jpg",  "image/jpeg" },
+	{ "gif",  "image/gif" },
+	{ "bmp",  "image/bmp" },
+	{ "ico",  "image/vnd.microsoft.icon" },
+	{ "tif",  "image/tiff" },
+	{ "tiff", "image/tiff" },
+	{ "svg",  "image/svg+xml" },
+	{ "svgz", "image/svg+xml" }
+};
+
+std::string mime_extension(const std::string &n_path) {
+
+	// This appears to be a super fancy way of preventing the std::string constructor to be called
+	// Essentially, it is a lambda that is executed right away.
+	// I simply search for the last dot and get the extension substring
+	std::string ext = [&n_path] () {
+		std::size_t const pos = n_path.rfind(".");
+		if (pos == std::string::npos) {
+			return std::string{};
+		} else {
+			return n_path.substr(pos + 1);
+		}
+	}();
+
+	// lowercase the extension for lookup in the static map
+	boost::algorithm::to_lower(ext);
+	const std::map<const std::string, const std::string>::const_iterator i = mime_extensions.find(ext);
+
+	// and return what we got
+	if (i != mime_extensions.cend()) {
+		return i->second;
+	} else {
+		return "application/text";
+	}
 }
 
 }
