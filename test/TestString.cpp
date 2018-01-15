@@ -5,13 +5,7 @@
 
 #define BOOST_TEST_MODULE StringTests
 #include <boost/test/unit_test.hpp>
-
-#include <boost/accumulators/accumulators.hpp>
-#include <boost/accumulators/statistics/stats.hpp>
-#include <boost/accumulators/statistics/mean.hpp>
-#include <boost/accumulators/statistics/moment.hpp>
-#include <boost/chrono.hpp>
-
+#include <boost/algorithm/string.hpp>
 
 #include "../String.hpp"
 #include "../Error.hpp"
@@ -50,8 +44,8 @@ BOOST_AUTO_TEST_CASE(ParseIp) {
 
 BOOST_AUTO_TEST_CASE(MimeTypeGuess) {
 
-	BOOST_CHECK(mime_extension("default") == "application/text");
-	BOOST_CHECK(mime_extension("test.html") == "text/html");
-	BOOST_CHECK(mime_extension("/longer/path/test.html") == "text/html");
-	BOOST_CHECK(mime_extension("http://www.test.de/longer/path/test.ico") == "image/vnd.microsoft.icon");
+	BOOST_CHECK(boost::algorithm::equals(mime_extension("default"), "application/text"));
+	BOOST_CHECK(boost::algorithm::equals(mime_extension("test.html"), "text/html"));
+	BOOST_CHECK(boost::algorithm::equals(mime_extension("/longer/path/test.html"), "text/html"));
+	BOOST_CHECK(boost::algorithm::equals(mime_extension("http://www.test.de/longer/path/test.ico"), "image/vnd.microsoft.icon"));
 }

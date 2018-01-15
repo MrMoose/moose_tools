@@ -19,7 +19,10 @@ void MOOSE_TOOLS_API truncate(std::string &n_string, std::size_t n_length) noexc
 /*! guess a http mime type from a file extension
 	defaults to "application/text" for unrecognized endings
 */
-std::string MOOSE_TOOLS_API mime_extension(const std::string &n_path);
+const char * MOOSE_TOOLS_API mime_extension(const std::string &n_path);
+
+//! returns a reverse of a string
+std::string MOOSE_TOOLS_API reverse(const std::string &n_string);
 
 /*
 This should really be a template to fit into boost algos

@@ -127,53 +127,64 @@ std::string itoa(const boost::uint64_t n_number) {
 	return ret;
 }
 
-const std::map<const std::string, const std::string> mime_extensions = {
-	{ "htm",  "text/html" },
-	{ "html", "text/html" },
-	{ "php",  "text/html" },
-	{ "css",  "text/css" },
-	{ "js",   "application/javascript" },
-	{ "json", "application/json" },
-	{ "xml",  "application/xml" },
-	{ "swf",  "application/x-shockwave-flash" },
-	{ "flv",  "video/x-flv" },
-	{ "png",  "image/png" },
-	{ "jpe",  "image/jpeg" },
-	{ "jpeg", "image/jpeg" },
-	{ "jpg",  "image/jpeg" },
-	{ "gif",  "image/gif" },
-	{ "bmp",  "image/bmp" },
-	{ "ico",  "image/vnd.microsoft.icon" },
-	{ "tif",  "image/tiff" },
-	{ "tiff", "image/tiff" },
-	{ "svg",  "image/svg+xml" },
-	{ "svgz", "image/svg+xml" }
+// returns a reverse of a string
+std::string reverse(const std::string &n_string) {
+
+	return{ n_string.rbegin(), n_string.rend() };
+}
+
+struct mimetype_symbols_type : qi::symbols<char, const char *> {
+
+	mimetype_symbols_type() {
+
+		this->add
+			(reverse(".htm"), "text/html")
+			(reverse(".html"), "text/html")
+			(reverse(".php"), "text/html")
+			(reverse(".css"), "text/css")
+			(reverse(".txt"), "text/plain")
+			(reverse(".js"), "application/javascript")
+			(reverse(".json"), "application/json")
+			(reverse(".xml"), "application/xml")
+			(reverse(".swf"), "application/x-shockwave-flash")
+			(reverse(".flv"), "video/x-flv")
+			(reverse(".png"), "image/png")
+			(reverse(".jpe"), "image/jpeg")
+			(reverse(".jpeg"), "image/jpeg")
+			(reverse(".jpg"), "image/jpeg")
+			(reverse(".gif"), "image/gif")
+			(reverse(".bmp"), "image/bmp")
+			(reverse(".ico"), "image/vnd.microsoft.icon")
+			(reverse(".tiff"), "image/tiff")
+			(reverse(".tif"), "image/tiff")
+			(reverse(".svg"), "image/svg+xml")
+			(reverse(".svgz"), "image/svg+xml")
+			;
+	}
 };
 
-std::string mime_extension(const std::string &n_path) {
+template <typename Iterator>
+struct mimetype_matching_parser : qi::grammar<Iterator, const char *()> {
 
-	// This appears to be a super fancy way of preventing the std::string constructor to be called
-	// Essentially, it is a lambda that is executed right away.
-	// I simply search for the last dot and get the extension substring
-	std::string ext = [&n_path] () {
-		std::size_t const pos = n_path.rfind(".");
-		if (pos == std::string::npos) {
-			return std::string{};
-		} else {
-			return n_path.substr(pos + 1);
-		}
-	}();
+	mimetype_matching_parser() : mimetype_matching_parser::base_type(m_start, "mimetype_matching_parser") {
 
-	// lowercase the extension for lookup in the static map
-	boost::algorithm::to_lower(ext);
-	const std::map<const std::string, const std::string>::const_iterator i = mime_extensions.find(ext);
-
-	// and return what we got
-	if (i != mime_extensions.cend()) {
-		return i->second;
-	} else {
-		return "application/text";
+		m_start %= qi::no_case[m_mimetype_symbols] >> qi::eoi;
 	}
+
+	mimetype_symbols_type              m_mimetype_symbols;
+	qi::rule<Iterator, const char *()> m_start;
+};
+
+// a static instance of the parser can and should be used to avoid creating it all the time
+static mimetype_matching_parser<std::string::const_reverse_iterator> const mimetype_matching_parser_instance;
+
+const char *mime_extension(const std::string &n_path) {
+
+	const char *                                ret = "application/text";
+	std::string::const_reverse_iterator         begin = n_path.crbegin();
+	const std::string::const_reverse_iterator   end = n_path.crend();
+	qi::parse(begin, end, mimetype_matching_parser_instance, ret);
+	return ret;
 }
 
 }
