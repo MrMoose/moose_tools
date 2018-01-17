@@ -19,6 +19,8 @@
 namespace moose {
 namespace tools {
 
+namespace fs = boost::filesystem;
+
 void truncate(std::string &n_string, std::size_t n_length) noexcept {
 
 	if (n_string.length() > n_length) {
@@ -133,9 +135,9 @@ std::string reverse(const std::string &n_string) {
 	return{ n_string.rbegin(), n_string.rend() };
 }
 
-struct mimetype_symbols_type : qi::symbols<char, const char *> {
+struct reverse_mimetype_symbols_type : qi::symbols<char, const char *> {
 
-	mimetype_symbols_type() {
+	reverse_mimetype_symbols_type() {
 
 		this->add
 			(reverse(".htm"), "text/html")
@@ -164,6 +166,61 @@ struct mimetype_symbols_type : qi::symbols<char, const char *> {
 };
 
 template <typename Iterator>
+struct reverse_mimetype_matching_parser : qi::grammar<Iterator, const char *()> {
+
+	reverse_mimetype_matching_parser() : reverse_mimetype_matching_parser::base_type(m_start, "reverse_mimetype_matching_parser") {
+
+		m_start %= qi::no_case[m_mimetype_symbols] >> qi::eoi;
+	}
+
+	reverse_mimetype_symbols_type      m_mimetype_symbols;
+	qi::rule<Iterator, const char *()> m_start;
+};
+
+// a static instance of the parser can and should be used to avoid creating it all the time
+static reverse_mimetype_matching_parser<std::string::const_reverse_iterator> const reverse_mimetype_matching_parser_instance;
+
+const char *mime_extension(const std::string &n_path) {
+
+	const char *                                ret = "application/text";
+	std::string::const_reverse_iterator         begin = n_path.crbegin();
+	const std::string::const_reverse_iterator   end = n_path.crend();
+	qi::parse(begin, end, reverse_mimetype_matching_parser_instance, ret);
+	return ret;
+}
+
+
+struct mimetype_symbols_type : qi::symbols<char, const char *> {
+
+	mimetype_symbols_type() {
+
+		this->add
+			("htm",  "text/html")
+			("html", "text/html")
+			("php",  "text/html")
+			("css",  "text/css")
+			("txt",  "text/plain")
+			("js",   "application/javascript")
+			("json", "application/json")
+			("xml",  "application/xml")
+			("swf",  "application/x-shockwave-flash")
+			("flv",  "video/x-flv")
+			("png",  "image/png")
+			("jpe",  "image/jpeg")
+			("jpeg", "image/jpeg")
+			("jpg",  "image/jpeg")
+			("gif",  "image/gif")
+			("bmp",  "image/bmp")
+			("ico",  "image/vnd.microsoft.icon")
+			("tiff", "image/tiff")
+			("tif",  "image/tiff")
+			("svg",  "image/svg+xml")
+			("svgz", "image/svg+xml")
+			;
+	}
+};
+
+template <typename Iterator>
 struct mimetype_matching_parser : qi::grammar<Iterator, const char *()> {
 
 	mimetype_matching_parser() : mimetype_matching_parser::base_type(m_start, "mimetype_matching_parser") {
@@ -176,13 +233,20 @@ struct mimetype_matching_parser : qi::grammar<Iterator, const char *()> {
 };
 
 // a static instance of the parser can and should be used to avoid creating it all the time
-static mimetype_matching_parser<std::string::const_reverse_iterator> const mimetype_matching_parser_instance;
+static mimetype_matching_parser<std::string::const_iterator> const mimetype_matching_parser_instance;
 
-const char *mime_extension(const std::string &n_path) {
+const char *mime_extension_from_path(const boost::filesystem::path &n_path) {
 
-	const char *                                ret = "application/text";
-	std::string::const_reverse_iterator         begin = n_path.crbegin();
-	const std::string::const_reverse_iterator   end = n_path.crend();
+	const char *ret = "application/text";
+
+	const fs::path extension = n_path.extension();   // contains the entire extension including the dot
+	if (extension.empty()) {
+		return ret;
+	}
+	
+	const std::string                 extstr = extension.string();   
+	std::string::const_iterator       begin = extstr.cbegin() + 1;
+	const std::string::const_iterator end = extstr.cend();
 	qi::parse(begin, end, mimetype_matching_parser_instance, ret);
 	return ret;
 }

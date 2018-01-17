@@ -42,10 +42,18 @@ BOOST_AUTO_TEST_CASE(ParseIp) {
 	BOOST_CHECK_THROW(from_google_ep("ipv4:192.", addr, port), network_error);
 }
 
-BOOST_AUTO_TEST_CASE(MimeTypeGuess) {
+BOOST_AUTO_TEST_CASE(MimeTypeGuessString) {
 
 	BOOST_CHECK(boost::algorithm::equals(mime_extension("default"), "application/text"));
 	BOOST_CHECK(boost::algorithm::equals(mime_extension("test.html"), "text/html"));
 	BOOST_CHECK(boost::algorithm::equals(mime_extension("/longer/path/test.html"), "text/html"));
 	BOOST_CHECK(boost::algorithm::equals(mime_extension("http://www.test.de/longer/path/test.ico"), "image/vnd.microsoft.icon"));
+}
+
+BOOST_AUTO_TEST_CASE(MimeTypeGuessPath) {
+
+	BOOST_CHECK(boost::algorithm::equals(mime_extension_from_path("default"), "application/text"));
+	BOOST_CHECK(boost::algorithm::equals(mime_extension_from_path("test.html"), "text/html"));
+	BOOST_CHECK(boost::algorithm::equals(mime_extension_from_path("/longer/path/test.html"), "text/html"));
+	BOOST_CHECK(boost::algorithm::equals(mime_extension_from_path("longer/path/test.ico"), "image/vnd.microsoft.icon"));
 }

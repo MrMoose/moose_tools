@@ -7,6 +7,7 @@
 #include "MooseToolsConfig.hpp"
 
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/filesystem/path.hpp>
 
 #include <string>
 
@@ -20,6 +21,11 @@ void MOOSE_TOOLS_API truncate(std::string &n_string, std::size_t n_length) noexc
 	defaults to "application/text" for unrecognized endings
 */
 const char * MOOSE_TOOLS_API mime_extension(const std::string &n_path);
+
+/*! guess a http mime type from a file extension
+	defaults to "application/text" for unrecognized endings
+*/
+const char * MOOSE_TOOLS_API mime_extension_from_path(const boost::filesystem::path &n_path);
 
 //! returns a reverse of a string
 std::string MOOSE_TOOLS_API reverse(const std::string &n_string);
