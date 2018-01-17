@@ -253,6 +253,10 @@ const char *mime_extension_from_path(const boost::filesystem::path &n_path) {
 }
 
 bool mime_type_is_text(const char *n_string) {
+	
+	if (boost::algorithm::iequals(n_string, "application/text")) {
+		return true;
+	}
 
 	using namespace boost::xpressive;
 
