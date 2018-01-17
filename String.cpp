@@ -13,6 +13,7 @@
 #include <boost/spirit/include/karma.hpp>
 #include <boost/asio.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/xpressive/xpressive.hpp>
 
 #include <map>
 
@@ -249,6 +250,14 @@ const char *mime_extension_from_path(const boost::filesystem::path &n_path) {
 	const std::string::const_iterator end = extstr.cend();
 	qi::parse(begin, end, mimetype_matching_parser_instance, ret);
 	return ret;
+}
+
+bool mime_type_is_text(const char *n_string) {
+
+	using namespace boost::xpressive;
+
+	cregex mimetype_text_re = cregex::compile("^text\\/\\w+");
+	return regex_match(n_string, mimetype_text_re);
 }
 
 }
