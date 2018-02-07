@@ -79,10 +79,18 @@ void prepare_log_file() {
 	s_logfile_name /= "default.log";
 #endif
 	
+	fs::path log_path(MOOSE_TOOLS_LOG_FILE_DIR);
+
+	// Log file directory can be overridden as well
+	const char *log_dir_env = std::getenv("MOOSE_LOG_DIRECTORY");
+	if (log_dir_env) {
+		log_path = fs::path(log_dir_env);
+	}
+
 	// Log file name can be overridden at runtime by env variable. Location stays the same.
-	const char *log_name_env = getenv("MOOSE_LOG_FILE_NAME");
+	const char *log_name_env = std::getenv("MOOSE_LOG_FILE_NAME");
 	if (log_name_env) {
-		s_logfile_name = fs::path(MOOSE_TOOLS_LOG_FILE_DIR) / fs::path(log_name_env);
+		s_logfile_name = log_path / fs::path(log_name_env);
 	}
 
 	// If the log file already exists, try to rotate it away and append the current time as string
