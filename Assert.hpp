@@ -40,6 +40,6 @@
 
 #endif
 
-#if BOOST_MSVC
+#if defined(BOOST_MSVC)
 MOOSE_TOOLS_API void AssertgetRidOfLNK4221();
 #endif

@@ -372,7 +372,7 @@ class IdTaggedContainer : public Incarnated< IdTaggedContainer<TaggedType> > {
 		tagged_container_type  m_objects;
 };
 
-#if BOOST_MSVC
+#if defined(BOOST_MSVC)
 MOOSE_TOOLS_API void IdTaggedContainerGetRidOfLNK4221();
 #endif
 

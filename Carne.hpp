@@ -101,7 +101,7 @@ class Incarnated {
 };
 
 
-#if BOOST_MSVC
+#if defined(BOOST_MSVC)
 MOOSE_TOOLS_API void CarneGetRidOfLNK4221();
 #endif
 

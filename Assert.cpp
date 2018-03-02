@@ -5,6 +5,6 @@
 
 #include "Assert.hpp"
 
-#if BOOST_MSVC
+#if defined(BOOST_MSVC)
 void AssertgetRidOfLNK4221() {}
 #endif

@@ -31,6 +31,6 @@ typedef std::unique_ptr<mt_macro_structname>         mt_macro_structname ## UPtr
 
 
 
-#if BOOST_MSVC
+#if defined(BOOST_MSVC)
 MOOSE_TOOLS_API void MacrosgetRidOfLNK4221();
 #endif

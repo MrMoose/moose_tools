@@ -5,6 +5,6 @@
 
 #include "Macros.hpp"
 
-#if BOOST_MSVC
+#if defined(BOOST_MSVC)
 void MacrosgetRidOfLNK4221() {}
 #endif

@@ -79,7 +79,7 @@ class Mutexed {
 		boost::uint64_t      m_incarnation;
 };
 
-#if BOOST_MSVC
+#if defined(BOOST_MSVC)
 MOOSE_TOOLS_API void MutexedgetRidOfLNK4221();
 #endif
 

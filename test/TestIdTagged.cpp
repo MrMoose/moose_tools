@@ -10,7 +10,7 @@
 #include "../IdTagged.hpp"
 #include "../Error.hpp"
 
-#if BOOST_MSVC
+#if defined(BOOST_MSVC)
 #pragma warning (disable : 4553) // faulty '==': operator has no effect; did you intend '='?  in checks
 #endif
 

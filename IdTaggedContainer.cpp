@@ -8,7 +8,7 @@
 namespace moose {
 namespace tools {
 
-#if BOOST_MSVC
+#if defined(BOOST_MSVC)
 void IdTaggedContainerGetRidOfLNK4221() {};
 #endif
 
