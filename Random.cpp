@@ -20,7 +20,8 @@ namespace {
 	
 	typedef boost::random::mt19937                             prng_type;
 	boost::thread_specific_ptr<prng_type>                      local_gen;
-	boost::thread_specific_ptr<boost::uuids::random_generator> random_uid_generator;
+	typedef boost::uuids::basic_random_generator<prng_type>    uuid_generator_type;
+	boost::thread_specific_ptr<uuid_generator_type>            random_uid_generator;
 	
 	/// get access to a thread local instance of the PRNG
 	inline prng_type* gen() {
@@ -39,11 +40,11 @@ namespace {
 	}
 	
 	// get access to a thread local instance of a uuid generator
-	inline boost::uuids::random_generator *get_uuid_generator(void) {
+	inline uuid_generator_type *get_uuid_generator(void) {
 		
 		if (!random_uid_generator.get()) {
 			prng_type *prng = gen();
-			random_uid_generator.reset(new boost::uuids::random_generator(*prng));
+			random_uid_generator.reset(new uuid_generator_type(*prng));
 		}
 		
 		return random_uid_generator.get();
@@ -67,7 +68,7 @@ boost::uint64_t urand(void) {
 
 boost::uuids::uuid ruuid(void) {
 
-	boost::uuids::random_generator *gen = get_uuid_generator();
+	uuid_generator_type *gen = get_uuid_generator();
 	return (*gen)();
 };
 
