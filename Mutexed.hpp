@@ -12,14 +12,14 @@
 namespace moose {
 namespace tools {
 
-/*! \brief shortcut base for classes with a mutex
+/*! @brief shortcut base for classes with a mutex
  */
 template< typename DerivedType, typename Lockable = boost::mutex >
 class Mutexed {
 
 	public:
 	
-		/*! \brief this is basically a regular unique_lock which
+		/*! @brief this is basically a regular unique_lock which
 		 * increases the locked object's incarnation count upon release.
 		 * Of course this doesn't imply any data have actually been changed
 		 * but it signals the possibility thereof.

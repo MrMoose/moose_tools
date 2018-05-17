@@ -59,7 +59,7 @@ typedef boost::log::sinks::synchronous_sink< boost::log::sinks::text_ostream_bac
 
 typedef boost::log::sources::severity_logger_mt< severity_level > DefaultLogger;
 
-/*! \brief initialize boost logging
+/*! @brief initialize boost logging
 	You MUST call this at startup of any logging program. Otherwise your log output may look crappy.
 */
 MOOSE_TOOLS_API void init_logging(void);

@@ -67,7 +67,7 @@ namespace phx = boost::phoenix;
 
 typedef boost::fusion::vector<ip::address, unsigned int>  ip_vector;
 
-/*! \brief parse a google format ip and port */
+/*! @brief parse a google format ip and port */
 template <typename Iterator>
 struct google_ip_parser : qi::grammar<Iterator, ip_vector()> {
 

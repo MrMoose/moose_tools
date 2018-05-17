@@ -26,13 +26,13 @@ class IdTagged {
 
 	protected:
 		//! Note that this c'tor can throw but only std::bad_alloc, which all new can
-		//! \throw std::bad_alloc when out of memory on first use
+		//! @throw std::bad_alloc when out of memory on first use
 		IdTagged(void)
 				: m_id(moose::tools::urand()) {
 		}
 
 		//! This c'tor allows to specify an id within a given range
-		//! \throw std::bad_alloc when out of memory on first use
+		//! @throw std::bad_alloc when out of memory on first use
 		IdTagged(const id_type n_id_min, const id_type n_id_max)
 			: m_id(moose::tools::urand(n_id_max)) {
 

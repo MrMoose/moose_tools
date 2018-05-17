@@ -262,7 +262,7 @@ class IdTaggedContainer : public Incarnated< IdTaggedContainer<TaggedType> > {
 		}
 
 		//! How did I get this long without actually retrieving things?
-		//! \return null on not found
+		//! @return null on not found
 		pointer_type get(const typename TaggedType::id_type n_id) const noexcept {
 
 			const objects_by_id &idx = m_objects.template get<by_id>();

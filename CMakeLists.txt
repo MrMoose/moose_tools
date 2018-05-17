@@ -6,7 +6,7 @@
 #cmake_minimum_required(VERSION 3.0)
 #project(moose_tools)
 
-#find_package(Boost 1.60.0 COMPONENTS random filesystem regex chrono thread system log REQUIRED)
+#find_package(Boost 1.67.0 COMPONENTS random filesystem regex chrono thread system log REQUIRED)
 
 set(MOOSE_TOOLS_SRC
 	Carne.cpp
@@ -22,6 +22,7 @@ set(MOOSE_TOOLS_SRC
 	Homedir.cpp
 	Log.cpp
 	Assert.cpp
+	AsioHelpers.cpp
 	)
 
 set(MOOSE_TOOLS_HDR
@@ -39,6 +40,7 @@ set(MOOSE_TOOLS_HDR
 	Homedir.hpp
 	Log.hpp
 	Assert.hpp
+	AsioHelpers.hpp
 	)
 
 include_directories(
@@ -82,10 +84,10 @@ target_link_libraries(moose_tools
 
 add_subdirectory(test)
 enable_testing()
-add_test(NAME Random     COMMAND TestRandom  )
-add_test(NAME ThreadedId COMMAND TestThreadId)
-add_test(NAME String     COMMAND TestString  )
-add_test(NAME IdTagged   COMMAND TestIdTagged)
-add_test(NAME Mutexed    COMMAND TestMutexed )
-
+add_test(NAME Random      COMMAND TestRandom     )
+add_test(NAME ThreadedId  COMMAND TestThreadId   )
+add_test(NAME String      COMMAND TestString     )
+add_test(NAME IdTagged    COMMAND TestIdTagged   )
+add_test(NAME Mutexed     COMMAND TestMutexed    )
+add_test(NAME AsioHelpers COMMAND TestAsioHelpers)
 

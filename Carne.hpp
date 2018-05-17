@@ -17,7 +17,7 @@ namespace tools {
 
 class IncarnatedUnusedParent {};
 
-/*! \brief Give a class an atomic incarnation counter 
+/*! @brief Give a class an atomic incarnation counter 
  *  
  *  You may also provide a parent, causing an incarnation increase of this to also increase the parent object's.
  */
@@ -29,20 +29,20 @@ class Incarnated {
 
 	protected:
 		//! Note that this c'tor can throw but only std::bad_alloc, which all new can
-		//! \throw std::bad_alloc when out of memory on first use
+		//! @throw std::bad_alloc when out of memory on first use
 		Incarnated(void)
 				: m_incarnation(0) {
 		}
 
 		//! Note that this c'tor can throw but only std::bad_alloc, which all new can
-		//! \throw std::bad_alloc when out of memory on first use
+		//! @throw std::bad_alloc when out of memory on first use
 		Incarnated(const ParentType *n_parent)
 			: m_incarnation(0)
 			, m_parent(n_parent) {
 
 		}
 
-		/*! \brief you can also give in the ID of course but only in protected c'tor
+		/*! @brief you can also give in the ID of course but only in protected c'tor
 		 *   so the derived class decides whether to offer this possibility but only
 		 *   at creation time
 		 */
@@ -52,7 +52,7 @@ class Incarnated {
 
 		~Incarnated(void) noexcept = default;
 
-		/*! \brief hand in a parent object.
+		/*! @brief hand in a parent object.
 			Without it the class will assert when increasing inc
 		 */
 		void set_parent(const ParentType *n_parent) {

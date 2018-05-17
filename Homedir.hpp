@@ -17,8 +17,8 @@ namespace tools {
 //! Fred Nurk in
 //! http://stackoverflow.com/questions/4891006/how-to-create-a-folder-in-the-home-directory
 //!
-//! \return tries to do the job but falls back to "C:\" or "~" respectively on fail
-//! \throw std::bad_alloc
+//! @return tries to do the job but falls back to "C:\" or "~" respectively on fail
+//! @throw std::bad_alloc
 boost::filesystem::path MOOSE_TOOLS_API user_home();
 
 }

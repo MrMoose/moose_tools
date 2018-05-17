@@ -13,7 +13,7 @@
 
 #include <iostream>
 
-/*! \brief release mode assertions
+/*! @brief release mode assertions
 	Sometimes you would like to use assertions in release builds.
 	Those macros make the assertion depending on the presence of
 	compiler flag -DMOOSE_DEBUG and not on _DEBUG or NDEBUG
