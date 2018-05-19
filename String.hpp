@@ -7,6 +7,7 @@
 #include "MooseToolsConfig.hpp"
 
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/ip/udp.hpp>
 #include <boost/filesystem/path.hpp>
 
 #include <string>
@@ -46,22 +47,24 @@ MOOSE_TOOLS_API void from_google_ep(const std::string &n_google_ep, boost::asio:
 */
 MOOSE_TOOLS_API void from_google_ep(const std::string &n_google_ep, boost::asio::ip::address &n_address);
 
+MOOSE_TOOLS_API std::string endpoint_to_string(const boost::asio::ip::udp::endpoint &n_endpoint);
+
 //! spirit itoa wrapper. Always succeeds except bad_alloc
-std::string MOOSE_TOOLS_API itoa(const boost::uint64_t n_number);
+MOOSE_TOOLS_API std::string itoa(const boost::uint64_t n_number);
 
 
 /*! guess a http mime type from a file extension
 	defaults to "application/text" for unrecognized endings
 */
-const char * MOOSE_TOOLS_API mime_extension(const std::string &n_path);
+MOOSE_TOOLS_API const char *mime_extension(const std::string &n_path);
 
 /*! guess a http mime type from a file extension
 	defaults to "application/text" for unrecognized endings
 */
-const char * MOOSE_TOOLS_API mime_extension_from_path(const boost::filesystem::path &n_path);
+MOOSE_TOOLS_API const char *mime_extension_from_path(const boost::filesystem::path &n_path);
 
 //! returns a reverse of a string
-std::string MOOSE_TOOLS_API reverse(const std::string &n_string);
+MOOSE_TOOLS_API std::string reverse(const std::string &n_string);
 
 //! @return true if argument starts with text/
 MOOSE_TOOLS_API bool mime_type_is_text(const char *n_string);

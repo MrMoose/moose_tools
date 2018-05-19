@@ -122,11 +122,18 @@ void from_google_ep(const std::string &n_google_ep, boost::asio::ip::address &n_
 	return from_google_ep(n_google_ep, n_address, unused_port);
 }
 
+std::string endpoint_to_string(const boost::asio::ip::udp::endpoint &n_endpoint) {
+
+	std::ostringstream oss;
+	oss << n_endpoint;
+	return oss.str();
+}
+
 std::string itoa(const boost::uint64_t n_number) {
 
 	std::string ret;
 	std::back_insert_iterator<std::string> sink(ret);
-	karma::generate(sink, karma::uint_, n_number);   // why should this fail?
+	karma::generate(sink, karma::ulong_long, n_number);   // why should this fail?
 	return ret;
 }
 

@@ -5,11 +5,13 @@
 
 #define BOOST_TEST_MODULE StringTests
 #include <boost/test/unit_test.hpp>
-#include <boost/algorithm/string.hpp>
 
 #include "../String.hpp"
 #include "../Error.hpp"
 #include "../Random.hpp"
+
+#include <boost/asio.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include <set>
 #include <iostream>
@@ -40,6 +42,15 @@ BOOST_AUTO_TEST_CASE(ParseIp) {
 	BOOST_CHECK_THROW(from_google_ep("ipv6:[2a02:810dsgdc:adb3:f561:144f:89f5]:61176", addr, port), network_error);
 	BOOST_CHECK_THROW(from_google_ep("ipdyfa6", addr, port), network_error);
 	BOOST_CHECK_THROW(from_google_ep("ipv4:192.", addr, port), network_error);
+}
+
+BOOST_AUTO_TEST_CASE(AsioEP) {
+
+	using boost::asio::ip::udp;
+	namespace ip = boost::asio::ip;
+	udp::endpoint test_ep(ip::address::from_string("127.0.0.1"), 42);
+	
+	BOOST_CHECK(boost::algorithm::equals(endpoint_to_string(test_ep), "127.0.0.1:42"));
 }
 
 BOOST_AUTO_TEST_CASE(MimeTypeGuessString) {
