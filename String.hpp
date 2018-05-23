@@ -49,6 +49,8 @@ MOOSE_TOOLS_API void from_google_ep(const std::string &n_google_ep, boost::asio:
 
 MOOSE_TOOLS_API std::string endpoint_to_string(const boost::asio::ip::udp::endpoint &n_endpoint);
 
+MOOSE_TOOLS_API boost::asio::ip::udp::endpoint string_to_udp_endpoint(const std::string &n_endpoint);
+
 //! spirit itoa wrapper. Always succeeds except bad_alloc
 MOOSE_TOOLS_API std::string itoa(const boost::uint64_t n_number);
 
