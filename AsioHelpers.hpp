@@ -32,7 +32,7 @@ class asio_streambuf_input_device : public boost::iostreams::source {
 		//! @brief construct with limit as amount of characters to read
 		MOOSE_TOOLS_API asio_streambuf_input_device(boost::asio::streambuf &n_streambuf, const std::streamsize n_limit);
 
-		MOOSE_TOOLS_API std::streamsize read(char_type * const n_buffer, const std::streamsize n_buffer_size);
+		MOOSE_TOOLS_API std::streamsize read(char_type *const n_buffer, const std::streamsize n_buffer_size);
 
 	private:
 		boost::asio::streambuf &m_streambuf;

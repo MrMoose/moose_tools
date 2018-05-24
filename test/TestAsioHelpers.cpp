@@ -23,15 +23,42 @@ BOOST_AUTO_TEST_CASE(CheckStreambufLimit) {
 	memset(test, 0, 128);
 	asio::streambuf sbuf;
 
-	// fill streambuf with some characters
-	std::iostream sin(&sbuf);
-	sin << "Hello World!";
+	{
+		// fill streambuf with some characters
+		std::iostream sin(&sbuf);
+		sin << "Hello World!";
+	}
 
-	// construct limited stream to extract from
-	iostreams::stream<asio_streambuf_input_device> os(sbuf, 5);
+	{
+		// construct limited stream to extract from
+		iostreams::stream<asio_streambuf_input_device> os(sbuf, 5);
 
-	// I expect this to read only 5 because limit
-	os.read(test, 127);
+		// I expect this to read only 5 because limit
+		os.read(test, 127);
 
-	BOOST_CHECK(boost::algorithm::equals(test, "Hello"));
+		BOOST_CHECK(boost::algorithm::equals(test, "Hello"));
+	}
+
+	{
+		// put more characters 
+		std::iostream sin(&sbuf);
+		sin << " This is a Test";
+	}
+
+	{
+		// now for a second time
+		iostreams::stream<asio_streambuf_input_device> os(sbuf, 5);
+		BOOST_CHECK(os.good());
+		BOOST_CHECK(!os.eof());
+		BOOST_CHECK(!os.bad());
+		BOOST_CHECK(!os.fail());
+
+		// I expect this to read only 5 because limit
+		os.read(test, 127);
+
+		BOOST_CHECK(boost::algorithm::equals(test, " Worl"));
+		BOOST_CHECK(os.eof());
+		BOOST_CHECK(!os.bad());
+		BOOST_CHECK(!os.fail());
+	}
 }
