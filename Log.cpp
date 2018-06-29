@@ -253,6 +253,11 @@ void init_logging(void) {
 
 #endif
 
+void shutdown_logging(void) {
+
+	boost::log::core::get()->set_logging_enabled(false);
+	boost::log::core::get()->remove_all_sinks();
+}
 
 BOOST_LOG_GLOBAL_LOGGER_INIT(s_moose_logger, DefaultLogger) {
 

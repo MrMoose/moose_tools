@@ -64,6 +64,8 @@ typedef boost::log::sources::severity_logger_mt< severity_level > DefaultLogger;
 */
 MOOSE_TOOLS_API void init_logging(void);
 
+MOOSE_TOOLS_API void shutdown_logging(void);
+
 BOOST_LOG_GLOBAL_LOGGER(s_moose_logger, DefaultLogger)
 
 MOOSE_TOOLS_API DefaultLogger &logger(void) noexcept;
