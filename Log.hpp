@@ -7,6 +7,8 @@
 
 #include "MooseToolsConfig.hpp"
 
+#define BOOST_LOG_USE_NATIVE_SYSLOG
+
 #include <boost/log/trivial.hpp>
 #include <boost/log/sinks.hpp>
 #include <boost/log/sources/global_logger_storage.hpp>

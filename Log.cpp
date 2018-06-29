@@ -8,6 +8,7 @@
 #ifdef _WIN32
 #include <boost/log/sinks/event_log_backend.hpp>
 #else
+#include <boost/log/sinks/syslog_backend.hpp>
 #endif
 #include <boost/log/sinks/text_ostream_backend.hpp>
 #include <boost/core/null_deleter.hpp>
@@ -206,10 +207,12 @@ void init_logging(void) {
 		<< severity
 		<< expr::smessage;
 
-
-	// Create an event log sink
-    boost::shared_ptr<DefaultSink> sink = boost::make_shared<DefaultSink>(
-                logging::keywords::facility = sinks::syslog::user);
+	// Create a syslog sink
+	boost::shared_ptr<sinks::syslog_backend> syslog_back(new sinks::syslog_backend(
+                logging::keywords::facility = sinks::syslog::user,
+                logging::keywords::use_impl = sinks::syslog::native
+	));
+		
 
 #ifdef MOOSE_TOOLS_FILE_LOG
 
@@ -242,10 +245,10 @@ void init_logging(void) {
 	logging::core::get()->add_sink(console_sink);
 #endif
 
-    sink->locked_backend()->set_severity_mapper(sinks::syslog::direct_severity_mapping<int>("Severity"));
+	syslog_back->set_severity_mapper(sinks::syslog::direct_severity_mapping<int>("Severity"));
 
 	// Add the sink to the core
-	logging::core::get()->add_sink(sink);
+	logging::core::get()->add_sink(boost::make_shared<sinks::synchronous_sink<sinks::syslog_backend> >(syslog_back));
 
 	logging::add_common_attributes();
 	logging::core::get()->add_global_attribute("Scope", boost::log::attributes::named_scope());
