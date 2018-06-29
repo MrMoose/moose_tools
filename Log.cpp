@@ -246,9 +246,13 @@ void init_logging(void) {
 #endif
 
 	syslog_back->set_severity_mapper(sinks::syslog::direct_severity_mapping<int>("Severity"));
+	boost::shared_ptr<DefaultSink> syslog_snk(boost::make_shared<DefaultSink>(syslog_back));
+#ifndef MOOSE_DEBUG
+	syslog_snk->set_filter(severity >= severity_level::warning);
+#endif // MOOSE_DEBUG
 
 	// Add the sink to the core
-	logging::core::get()->add_sink(boost::make_shared<sinks::synchronous_sink<sinks::syslog_backend> >(syslog_back));
+	logging::core::get()->add_sink(syslog_snk);
 
 	logging::add_common_attributes();
 	logging::core::get()->add_global_attribute("Scope", boost::log::attributes::named_scope());
