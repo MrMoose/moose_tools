@@ -25,7 +25,7 @@ BOOST_AUTO_TEST_CASE(RunOnce) {
 void insert_own_id(boost::mutex &n_mutex, std::set<unsigned int> &n_set) {
 	
 	unsigned int id_here = moose::tools::faked_thread_id();
-	boost::mutex::scoped_lock slock(n_mutex);
+	boost::unique_lock<boost::mutex> slock(n_mutex);
 	n_set.insert(id_here);
 }
 

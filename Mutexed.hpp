@@ -7,6 +7,7 @@
 #include "MooseToolsConfig.hpp"
 
 #include <boost/thread/mutex.hpp>
+#include <boost/thread/lock_types.hpp>
 #include <boost/cstdint.hpp>
 
 namespace moose {

@@ -3,10 +3,12 @@
 # Software License, Version 1.0. (See accompanying file
 # LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-#cmake_minimum_required(VERSION 3.0)
-#project(moose_tools)
+cmake_minimum_required(VERSION 3.4)
+project(moose_tools)
 
-#find_package(Boost 1.67.0 COMPONENTS random filesystem regex chrono thread system log REQUIRED)
+add_definitions(-DBOOST_THREAD_VERSION=4)
+
+find_package(Boost 1.67.0 COMPONENTS chrono thread system program_options log unit_test_framework  REQUIRED)
 
 set(MOOSE_TOOLS_SRC
 	Carne.cpp
