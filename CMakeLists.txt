@@ -23,6 +23,7 @@ set(MOOSE_TOOLS_SRC
 	Log.cpp
 	Assert.cpp
 	AsioHelpers.cpp
+	FilesystemHelpers.cpp
 	)
 
 set(MOOSE_TOOLS_HDR
@@ -41,6 +42,7 @@ set(MOOSE_TOOLS_HDR
 	Log.hpp
 	Assert.hpp
 	AsioHelpers.hpp
+	FilesystemHelpers.hpp
 	)
 
 include_directories(

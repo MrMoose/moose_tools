@@ -19,7 +19,7 @@ namespace tools {
 //!
 //! @return tries to do the job but falls back to "C:\" or "~" respectively on fail
 //! @throw std::bad_alloc
-boost::filesystem::path MOOSE_TOOLS_API user_home();
+MOOSE_TOOLS_API boost::filesystem::path user_home();
 
 }
 }
