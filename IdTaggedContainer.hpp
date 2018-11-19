@@ -95,7 +95,7 @@ class IdTaggedContainerIterator
 	
 	TaggedType must be derived from IdTagged.
 
-	Modifyinf operations will increase incarnation count
+	Modifying operations will increase incarnation count
 
 	@note I've made this copyable but this is a shallow copy
 */
@@ -106,12 +106,12 @@ class IdTaggedContainer : public Incarnated< IdTaggedContainer<TaggedType> > {
 	BOOST_STATIC_ASSERT(boost::is_base_of< IdTagged< TaggedType >, TaggedType>::value);
 
 	public:
-		typedef boost::shared_ptr<TaggedType>       pointer_type;
-		typedef boost::shared_ptr<const TaggedType> const_pointer_type;
-		typedef TaggedType                          value_type;
-		typedef const TaggedType                    const_value_type;
-		typedef IdTaggedContainerIterator< IdTaggedContainer< TaggedType > > iterator;
-		typedef IdTaggedContainerIterator< const IdTaggedContainer< TaggedType > > const_iterator;
+		using pointer_type       = boost::shared_ptr<TaggedType>;
+		using const_pointer_type = boost::shared_ptr<const TaggedType>;
+		using value_type         = TaggedType;
+		using const_value_type   = const TaggedType;
+		using iterator           = IdTaggedContainerIterator< IdTaggedContainer< TaggedType > >;
+		using const_iterator     = IdTaggedContainerIterator< const IdTaggedContainer< TaggedType > >;
 
 		IdTaggedContainer() = default;
 		IdTaggedContainer(const IdTaggedContainer &n_other) = delete;  // well, we could deep copy it...
@@ -247,7 +247,7 @@ class IdTaggedContainer : public Incarnated< IdTaggedContainer<TaggedType> > {
 			}
 		}
 
-		//! how many are in there?
+		//! Is there one with that id?
 		bool has(const typename TaggedType::id_type n_id) const noexcept {
 
 			const objects_by_id &idx = m_objects.template get<by_id>();
@@ -353,7 +353,7 @@ class IdTaggedContainer : public Incarnated< IdTaggedContainer<TaggedType> > {
 		struct by_id {};
 		struct by_random {};
 
-		typedef boost::multi_index_container<
+		using tagged_container_type = boost::multi_index_container<
 					pointer_type,
 					boost::multi_index::indexed_by<
 						boost::multi_index::ordered_unique<
@@ -364,10 +364,10 @@ class IdTaggedContainer : public Incarnated< IdTaggedContainer<TaggedType> > {
 							boost::multi_index::tag<by_random>
 						>
 					>
-				> tagged_container_type;
+				>;
 		
-		typedef typename tagged_container_type::template index<by_id>::type     objects_by_id;
-		typedef typename tagged_container_type::template index<by_random>::type objects_by_random;
+		using objects_by_id     = typename tagged_container_type::template index<by_id>::type;
+		using objects_by_random = typename tagged_container_type::template index<by_random>::type;
 
 		tagged_container_type  m_objects;
 };

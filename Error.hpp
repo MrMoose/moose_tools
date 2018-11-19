@@ -18,12 +18,12 @@ namespace moose {
 namespace tools {
 
 MOOSE_TOOLS_API std::string get_last_error();
-MOOSE_TOOLS_API void set_last_error(const std::string& n_error_message);
+MOOSE_TOOLS_API void set_last_error(const std::string &n_error_message);
 	
 struct MOOSE_TOOLS_API moose_error: virtual std::exception, virtual boost::exception {
 
 	public:
-		MOOSE_TOOLS_API virtual char const *what() const noexcept;
+		MOOSE_TOOLS_API virtual char const *what() const noexcept override;
 		MOOSE_TOOLS_API virtual ~moose_error() noexcept { }
 };
 
@@ -32,66 +32,66 @@ struct MOOSE_TOOLS_API moose_error: virtual std::exception, virtual boost::excep
 //! for separation of test specific exceptions and 'real' ones
 struct MOOSE_TOOLS_API unit_test_error : virtual moose_error {
 	
-	MOOSE_TOOLS_API virtual char const *what() const noexcept;
+	MOOSE_TOOLS_API virtual char const *what() const noexcept override;
 };
 
 //! Some component violated protocol specifications and talked BS
 struct MOOSE_TOOLS_API protocol_error : virtual moose_error {
 
-	MOOSE_TOOLS_API virtual char const *what() const noexcept;
+	MOOSE_TOOLS_API virtual char const *what() const noexcept override;
 };
 
 //! Unspecified internal fuckup
 struct MOOSE_TOOLS_API internal_error : virtual moose_error {
 	
-	MOOSE_TOOLS_API virtual char const *what() const noexcept;
+	MOOSE_TOOLS_API virtual char const *what() const noexcept override;
 };
 
 //! UI structuring internal error
 struct MOOSE_TOOLS_API ui_error : virtual internal_error {
 
-	MOOSE_TOOLS_API virtual char const *what() const noexcept;
+	MOOSE_TOOLS_API virtual char const *what() const noexcept override;
 };
 
 //! Generic IO error
 struct MOOSE_TOOLS_API io_error : virtual moose_error {
 
-	MOOSE_TOOLS_API virtual char const *what() const noexcept;
+	MOOSE_TOOLS_API virtual char const *what() const noexcept override;
 };
 
 //! Serialization failed (not impl specific)
 struct MOOSE_TOOLS_API serialization_error : virtual io_error {
 
-	MOOSE_TOOLS_API virtual char const *what() const noexcept;
+	MOOSE_TOOLS_API virtual char const *what() const noexcept override;
 };
 
 //! Disk IO failed
 struct MOOSE_TOOLS_API file_error : virtual io_error {
 
-	MOOSE_TOOLS_API virtual char const *what() const noexcept;
+	MOOSE_TOOLS_API virtual char const *what() const noexcept override;
 };
 
 //! Network IO failed
 struct MOOSE_TOOLS_API network_error : virtual io_error {
 
-	MOOSE_TOOLS_API virtual char const *what() const noexcept;
+	MOOSE_TOOLS_API virtual char const *what() const noexcept override;
 };
 
 
 //! tag any exception with an error code
-typedef boost::error_info<struct tag_errno_code, int> errno_code;
+using errno_code = boost::error_info<struct tag_errno_code, int>;
 
 //! tag any exception with a human readable error message
-typedef boost::error_info<struct tag_error_message, std::string> error_message;
+using error_message = boost::error_info<struct tag_error_message, std::string>;
 
 //! tag protocol exceptions with an request / response id
-typedef boost::error_info<struct tag_request_id, boost::uint64_t> request_id;
+using request_id = boost::error_info<struct tag_request_id, boost::uint64_t>;
 
 //! tag exceptions with an session id
-typedef boost::error_info<struct tag_session_id, boost::uint64_t> session_id;
+using session_id = boost::error_info<struct tag_session_id, boost::uint64_t>;
 
 //! The argument that led to the error
-typedef boost::error_info<struct tag_error_argument, std::string> error_argument_type;
+using error_argument_type = boost::error_info<struct tag_error_argument, std::string>;
 
 //! Must be convertible from all sorts of stuff
 struct MOOSE_TOOLS_API error_argument : error_argument_type {
@@ -100,7 +100,7 @@ struct MOOSE_TOOLS_API error_argument : error_argument_type {
 		MOOSE_TOOLS_API explicit error_argument(const char *n_string);
 		MOOSE_TOOLS_API explicit error_argument(const std::string &n_string);
 		MOOSE_TOOLS_API explicit error_argument(const boost::any &n_something);
-		MOOSE_TOOLS_API virtual ~error_argument(void) noexcept;
+		MOOSE_TOOLS_API virtual ~error_argument() noexcept;
 };
 
 }
