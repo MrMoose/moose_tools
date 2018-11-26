@@ -187,7 +187,6 @@ class IdTaggedContainer : public Incarnated< IdTaggedContainer<TaggedType> > {
 			@return true if object was present
 
 			@throw internal_error on null
-			@return true if object was added
 		*/
 		bool replace(pointer_type n_object) {
 
