@@ -73,10 +73,6 @@ target_include_directories(moose_tools
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-target_compile_definitions(moose_tools
-	PRIVATE "-DBOOST_THREAD_VERSION=3"
-)
-
 if (${MOOSE_TOOLS_EVENT_LOG})
 	target_compile_definitions(moose_tools PRIVATE -DMOOSE_TOOLS_EVENT_LOG)
 endif()
