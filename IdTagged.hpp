@@ -9,7 +9,8 @@
 #include "Assert.hpp"
 
 #include <boost/cstdint.hpp>
-#include <boost/shared_ptr.hpp>
+
+#include <memory>
 
 namespace moose {
 namespace tools {
@@ -76,12 +77,12 @@ class IdTagged {
 				return n_o.id();
 			}
 
-			const result_type operator()(const boost::shared_ptr< IdTagged< DerivedType > > &n_o) const noexcept {
+			const result_type operator()(const std::shared_ptr< IdTagged< DerivedType > > &n_o) const noexcept {
 				MOOSE_ASSERT(n_o);
 				return n_o->id();
 			}
 
-			result_type operator()(boost::shared_ptr< IdTagged< DerivedType > > &n_o) const noexcept {
+			result_type operator()(std::shared_ptr< IdTagged< DerivedType > > &n_o) const noexcept {
 				MOOSE_ASSERT(n_o);
 				return n_o->id();
 			}

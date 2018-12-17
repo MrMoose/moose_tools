@@ -17,10 +17,11 @@
 #include <boost/noncopyable.hpp>
 #include <boost/type_traits/is_base_of.hpp>
 #include <boost/static_assert.hpp>
-#include <boost/shared_ptr.hpp>
 #include <boost/container/set.hpp>
 #include <boost/shared_container_iterator.hpp>
 #include <boost/iterator/iterator_facade.hpp>
+
+#include <memory>
 
 namespace moose {
 namespace tools {
@@ -106,8 +107,8 @@ class IdTaggedContainer : public Incarnated< IdTaggedContainer<TaggedType> > {
 	BOOST_STATIC_ASSERT(boost::is_base_of< IdTagged< TaggedType >, TaggedType>::value);
 
 	public:
-		using pointer_type       = boost::shared_ptr<TaggedType>;
-		using const_pointer_type = boost::shared_ptr<const TaggedType>;
+		using pointer_type       = std::shared_ptr<TaggedType>;
+		using const_pointer_type = std::shared_ptr<const TaggedType>;
 		using value_type         = TaggedType;
 		using const_value_type   = const TaggedType;
 		using iterator           = IdTaggedContainerIterator< IdTaggedContainer< TaggedType > >;

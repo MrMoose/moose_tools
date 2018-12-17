@@ -6,28 +6,25 @@
 #pragma once
 #include "MooseToolsConfig.hpp"
 
-#include <boost/shared_ptr.hpp>
-#include <boost/weak_ptr.hpp>
-
 #include <memory>
 
-#define MOOSE_FWD_DECLARE_CLASS(mt_macro_classname)                                \
-class mt_macro_classname;                                                          \
-typedef boost::shared_ptr<mt_macro_classname>       mt_macro_classname ## SPtr;    \
-typedef boost::shared_ptr<const mt_macro_classname> mt_macro_classname ## CSPtr;   \
-typedef boost::weak_ptr<mt_macro_classname>         mt_macro_classname ## WPtr;    \
-typedef boost::weak_ptr<const mt_macro_classname>   mt_macro_classname ## CWPtr;   \
-typedef std::unique_ptr<mt_macro_classname>         mt_macro_classname ## UPtr;
+#define MOOSE_FWD_DECLARE_CLASS(mt_macro_classname)                              \
+class mt_macro_classname;                                                        \
+typedef std::shared_ptr<mt_macro_classname>       mt_macro_classname ## SPtr;    \
+typedef std::shared_ptr<const mt_macro_classname> mt_macro_classname ## CSPtr;   \
+typedef std::weak_ptr<mt_macro_classname>         mt_macro_classname ## WPtr;    \
+typedef std::weak_ptr<const mt_macro_classname>   mt_macro_classname ## CWPtr;   \
+typedef std::unique_ptr<mt_macro_classname>       mt_macro_classname ## UPtr;
 
 
 
-#define MOOSE_FWD_DECLARE_STRUCT(mt_macro_structname)                              \
-struct mt_macro_structname;                                                        \
-typedef boost::shared_ptr<mt_macro_structname>       mt_macro_structname ## SPtr;  \
-typedef boost::shared_ptr<const mt_macro_structname> mt_macro_structname ## CSPtr; \
-typedef boost::weak_ptr<mt_macro_structname>         mt_macro_structname ## WPtr;  \
-typedef boost::weak_ptr<const mt_macro_structname>   mt_macro_structname ## CWPtr; \
-typedef std::unique_ptr<mt_macro_structname>         mt_macro_structname ## UPtr;
+#define MOOSE_FWD_DECLARE_STRUCT(mt_macro_structname)                            \
+struct mt_macro_structname;                                                      \
+typedef std::shared_ptr<mt_macro_structname>       mt_macro_structname ## SPtr;  \
+typedef std::shared_ptr<const mt_macro_structname> mt_macro_structname ## CSPtr; \
+typedef std::weak_ptr<mt_macro_structname>         mt_macro_structname ## WPtr;  \
+typedef std::weak_ptr<const mt_macro_structname>   mt_macro_structname ## CWPtr; \
+typedef std::unique_ptr<mt_macro_structname>       mt_macro_structname ## UPtr;
 
 
 
