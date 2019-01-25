@@ -11,36 +11,33 @@
 #include <boost/cstdint.hpp>
 
 #include <memory>
+#include <limits>
 
 namespace moose {
 namespace tools {
 
 /*! @brief Give a class an ID which is randomly generated in c'tor
  *  which can not be changed afterwards
- *  \todo consider making this noncopyable for semantics
+ *  @todo consider making this noncopyable for semantics
  */
 template< typename DerivedType, typename IdType = boost::uint64_t>
 class IdTagged {
 
 	public:
-		typedef IdType id_type;
+		using id_type = IdType;
 
 	protected:
-		//! Note that this c'tor can throw but only std::bad_alloc, which all new can
+		//! Create new object with random non-null ID
 		//! @throw std::bad_alloc when out of memory on first use
-		IdTagged(void)
-				: m_id(moose::tools::urand()) {
+		IdTagged()
+				: m_id(moose::tools::urand(1, std::numeric_limits< id_type >::max())) {
 		}
 
 		//! This c'tor allows to specify an id within a given range
 		//! @throw std::bad_alloc when out of memory on first use
 		IdTagged(const id_type n_id_min, const id_type n_id_max)
-			: m_id(moose::tools::urand(n_id_max)) {
+				: m_id(moose::tools::urand(n_id_min, n_id_max)) {
 
-			while (m_id < n_id_min) {
-				// casting constness away in the c'tor because I can
-				const_cast<id_type &>(m_id) = moose::tools::urand(n_id_max);
-			}
 		}
 
 		/*! @brief you can also give in the ID of course but only in protected c'tor
@@ -52,11 +49,11 @@ class IdTagged {
 		}
 
 		IdTagged(const IdTagged &n_other) = delete;
-		~IdTagged(void) noexcept = default;
+		~IdTagged() noexcept = default;
 
 	public:
 		//! this is the main self-explanatory getter
-		id_type id(void) const noexcept {
+		id_type id() const noexcept {
 			
 			return m_id;
 		}
@@ -67,7 +64,7 @@ class IdTagged {
 		 */
 		typedef struct tag_id_extractor {
 
-			typedef id_type result_type;
+			using result_type = id_type;
 
 			const result_type operator()(const IdTagged< DerivedType > &n_o) const noexcept {
 				return n_o.id();

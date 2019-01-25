@@ -18,9 +18,9 @@ namespace tools {
 
 namespace {
 	
-	typedef boost::random::mt19937                             prng_type;
+	using prng_type = boost::random::mt19937;
 	boost::thread_specific_ptr<prng_type>                      local_gen;
-	typedef boost::uuids::basic_random_generator<prng_type>    uuid_generator_type;
+	using uuid_generator_type = boost::uuids::basic_random_generator<prng_type>;
 	boost::thread_specific_ptr<uuid_generator_type>            random_uid_generator;
 	
 	/// get access to a thread local instance of the PRNG
@@ -40,7 +40,7 @@ namespace {
 	}
 	
 	// get access to a thread local instance of a uuid generator
-	inline uuid_generator_type *get_uuid_generator(void) {
+	inline uuid_generator_type *get_uuid_generator() {
 		
 		if (!random_uid_generator.get()) {
 			prng_type *prng = gen();
@@ -61,12 +61,23 @@ boost::uint64_t urand(const boost::uint64_t n_max) {
 	return dist(*prng);
 }
 
-boost::uint64_t urand(void) {
+boost::uint64_t urand(const boost::uint64_t n_min, const boost::uint64_t n_max) {
+	
+	MOOSE_ASSERT_MSG((n_min < n_max), "minimum value must be lower than maximum value when calling moose::tools::urand()");
+
+	// get the thread local PRNG
+	boost::random::mt19937 *prng = gen();
+	MOOSE_ASSERT(prng);
+	boost::random::uniform_int_distribution<boost::uint64_t> dist(n_min, n_max);
+	return dist(*prng);
+}
+
+boost::uint64_t urand() {
 
 	return moose::tools::urand(std::numeric_limits<boost::uint64_t>::max());
 }
 
-boost::uuids::uuid ruuid(void) {
+boost::uuids::uuid ruuid() {
 
 	uuid_generator_type *gen = get_uuid_generator();
 	return (*gen)();
@@ -77,7 +88,7 @@ static unsigned long x = 123456789;
 static unsigned long y = 362436069;
 static unsigned long z = 521288629;
 
-unsigned long xorshf96(void) {          // period 2^96-1
+unsigned long xorshf96() {          // period 2^96-1
 
 	unsigned long t;
 	x ^= x << 16;

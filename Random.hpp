@@ -19,6 +19,13 @@ namespace tools {
 MOOSE_TOOLS_API boost::uint64_t urand(const boost::uint64_t n_max);
 
 /*! @brief thread safe random number shortcut
+ *  This will give you a thread safe random number between n_min and n_max
+ *  @note asserts when n_min >= n_max
+ *  @throw std::bad_alloc when out of memory on first use
+ */
+MOOSE_TOOLS_API boost::uint64_t urand(const boost::uint64_t n_min, const boost::uint64_t n_max);
+
+/*! @brief thread safe random number shortcut
  * This will give you a thread safe random number between 0 and std::numerical_limits<uint64_t>::max()
  *  @throw std::bad_alloc when out of memory on first use
  */
@@ -28,13 +35,13 @@ MOOSE_TOOLS_API boost::uint64_t urand();
  *  @return random uuid
  *  @throw std::bad_alloc when out of memory on first use
  */
-MOOSE_TOOLS_API boost::uuids::uuid ruuid(void);
+MOOSE_TOOLS_API boost::uuids::uuid ruuid();
 
 /*! @brief supposedly the fasted.
 	Found this at https://stackoverflow.com/questions/1640258/need-a-fast-random-generator-for-c
 	and just took it here. All credits to original author
  */
-MOOSE_TOOLS_API unsigned long xorshf96(void);
+MOOSE_TOOLS_API unsigned long xorshf96();
 
 }
 }
