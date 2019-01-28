@@ -210,7 +210,7 @@ void init_logging(void) {
 	// Create a syslog sink
 	boost::shared_ptr<sinks::syslog_backend> syslog_back(new sinks::syslog_backend(
                 logging::keywords::facility = sinks::syslog::user,
-                logging::keywords::use_impl = sinks::syslog::native
+	            logging::keywords::use_impl = sinks::syslog::udp_socket_based
 	));
 		
 

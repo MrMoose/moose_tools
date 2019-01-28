@@ -89,6 +89,11 @@ if (${BUILD_SHARED_LIBS})
 	target_compile_definitions(moose_tools PUBLIC -DMOOSE_TOOLS_DLL)
 endif()
 
+set_property(TARGET moose_tools PROPERTY CXX_STANDARD 14)
+if (${MOOSE_USE_COTIRE})
+	cotire(moose_tools)
+endif()
+
 add_subdirectory(test)
 enable_testing()
 add_test(NAME Random      COMMAND TestRandom     )

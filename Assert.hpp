@@ -19,14 +19,14 @@
 	compiler flag -DMOOSE_DEBUG and not on _DEBUG or NDEBUG
  */
 #define MOOSE_ASSERT(expr)                                             \
-	if (!expr) {                                                       \
+	if (!(expr)) {                                                       \
 		std::cerr << "Assertion failed at " << BOOST_CURRENT_FUNCTION  \
 			<< " in " << __FILE__ << ":" << __LINE__ << std::endl;     \
 		std::terminate();                                              \
     }                                                                  \
 
 #define MOOSE_ASSERT_MSG(expr, msg)                                    \
-	if (!expr) {                                                       \
+	if (!(expr)) {                                                       \
 		std::cerr << "Assertion failed!\n"                             \
 			<< msg << "\nat " << BOOST_CURRENT_FUNCTION                \
 			<< " in " << __FILE__ << ":" << __LINE__ << std::endl;     \
