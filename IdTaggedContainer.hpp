@@ -164,7 +164,7 @@ class IdTaggedContainer : public Incarnated< IdTaggedContainer<TaggedType> > {
 			@throw internal_error on null
 			@return true if object was added
 		 */
-		bool insert(pointer_type n_object) {
+		bool insert(const pointer_type n_object) {
 			
 			if (!n_object) {
 				BOOST_THROW_EXCEPTION(internal_error() << error_message("null pointer given"));
@@ -189,7 +189,7 @@ class IdTaggedContainer : public Incarnated< IdTaggedContainer<TaggedType> > {
 
 			@throw internal_error on null
 		*/
-		bool replace(pointer_type n_object) {
+		bool replace(const pointer_type n_object) {
 
 			if (!n_object) {
 				BOOST_THROW_EXCEPTION(internal_error() << error_message("null pointer given"));
