@@ -10,6 +10,7 @@
 #include <boost/exception/all.hpp>
 #include <boost/any.hpp>
 #include <boost/cstdint.hpp>
+#include <boost/system/error_code.hpp>
 
 #include <string>
 #include <sstream>
@@ -89,6 +90,9 @@ using request_id = boost::error_info<struct tag_request_id, boost::uint64_t>;
 
 //! tag exceptions with an session id
 using session_id = boost::error_info<struct tag_session_id, boost::uint64_t>;
+
+//! also a boost system error code
+using error_code = boost::error_info<struct tag_error_code, boost::system::error_code>;
 
 //! The argument that led to the error
 using error_argument_type = boost::error_info<struct tag_error_argument, std::string>;
