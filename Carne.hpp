@@ -24,14 +24,17 @@ class IncarnatedUnusedParent {};
 template< typename DerivedType, typename ParentType = IncarnatedUnusedParent >
 class Incarnated {
 
-	// This container only works for types that are IdTagged
-	//BOOST_STATIC_ASSERT(boost::is_base_of< Incarnated< ParentType >, ParentType>::value);
-
 	protected:
 		//! Note that this c'tor can throw but only std::bad_alloc, which all new can
 		//! @throw std::bad_alloc when out of memory on first use
-		Incarnated(void)
+		Incarnated()
 				: m_incarnation(0) {
+		}
+
+		//! When deserializing such objects from somewhere you may need a c'tor which
+		//! Initialized the object with a given incarnation
+		Incarnated(const boost::int64_t n_incarnation)
+			: m_incarnation{ n_incarnation } {
 		}
 
 		//! Note that this c'tor can throw but only std::bad_alloc, which all new can
@@ -50,7 +53,7 @@ class Incarnated {
 				: m_incarnation(n_other.m_incarnation) {
 		}
 
-		~Incarnated(void) noexcept = default;
+		~Incarnated() noexcept = default;
 
 		/*! @brief hand in a parent object.
 			Without it the class will assert when increasing inc
@@ -63,7 +66,7 @@ class Incarnated {
 
 	public:
 		//! this is the main self-explanatory getter
-		boost::uint64_t incarnation(void) const noexcept {
+		boost::uint64_t incarnation() const noexcept {
 			
 			return m_incarnation.load();
 		}
@@ -96,8 +99,7 @@ class Incarnated {
 		}
 
 		boost::atomic<boost::uint64_t>  m_incarnation;
-
-		ParentType               *m_parent = nullptr;
+		ParentType                     *m_parent = nullptr;
 };
 
 
