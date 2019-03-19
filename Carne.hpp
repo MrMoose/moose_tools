@@ -34,14 +34,14 @@ class Incarnated {
 		//! When deserializing such objects from somewhere you may need a c'tor which
 		//! Initialized the object with a given incarnation
 		Incarnated(const boost::int64_t n_incarnation)
-			: m_incarnation{ n_incarnation } {
+				: m_incarnation{ static_cast<boost::uint64_t>(n_incarnation) } {
 		}
 
 		//! Note that this c'tor can throw but only std::bad_alloc, which all new can
 		//! @throw std::bad_alloc when out of memory on first use
 		Incarnated(const ParentType *n_parent)
-			: m_incarnation(0)
-			, m_parent(n_parent) {
+				: m_incarnation(0)
+				, m_parent(n_parent) {
 
 		}
 
