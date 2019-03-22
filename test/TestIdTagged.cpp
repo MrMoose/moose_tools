@@ -20,7 +20,7 @@ class IdTaggedClass : public IdTagged< IdTaggedClass > {
 
 	public:
 		IdTaggedClass() = default;
-		IdTaggedClass(const IdTaggedClass &n_other) = default;
+		IdTaggedClass(const IdTaggedClass &n_other) = delete;
 		~IdTaggedClass() = default;
 };
 
