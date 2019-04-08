@@ -12,6 +12,12 @@
 #include <boost/cstdint.hpp>
 #include <boost/system/error_code.hpp>
 
+// needed for MSVC - Uses COM to show debug info
+#if defined(BOOST_MSVC)
+	#define BOOST_STACKTRACE_USE_WINDBG 
+#endif
+#include <boost/stacktrace.hpp>
+
 #include <string>
 #include <sstream>
 
@@ -24,6 +30,7 @@ MOOSE_TOOLS_API void set_last_error(const std::string &n_error_message);
 struct MOOSE_TOOLS_API moose_error: virtual std::exception, virtual boost::exception {
 
 	public:
+		MOOSE_TOOLS_API moose_error();
 		MOOSE_TOOLS_API virtual char const *what() const noexcept override;
 		MOOSE_TOOLS_API virtual ~moose_error() noexcept { }
 };
@@ -97,6 +104,9 @@ using error_code = boost::error_info<struct tag_error_code, boost::system::error
 //! The argument that led to the error
 using error_argument_type = boost::error_info<struct tag_error_argument, std::string>;
 
+//! tag exceptions with stacktrace info
+using stacktrace_dump = boost::error_info<struct tag_stacktrace_dump, boost::stacktrace::stacktrace>;
+
 //! Must be convertible from all sorts of stuff
 struct MOOSE_TOOLS_API error_argument : error_argument_type {
 
@@ -107,6 +117,6 @@ struct MOOSE_TOOLS_API error_argument : error_argument_type {
 		MOOSE_TOOLS_API virtual ~error_argument() noexcept;
 };
 
-}
-}
+} // namespace tools
+} // namespace moose
 

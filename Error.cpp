@@ -35,6 +35,13 @@ void set_last_error(const std::string& n_error_message) {
 	*get_tls_error_message() = n_error_message;
 }
 
+moose_error::moose_error() {
+#if defined(MOOSE_DEBUG)
+	// inject stacktrace for every error
+	*this << (stacktrace_dump(boost::stacktrace::stacktrace{}));
+#endif
+}
+
 namespace karma = boost::spirit::karma;
 namespace ascii = boost::spirit::ascii;
 
