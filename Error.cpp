@@ -36,6 +36,7 @@ void set_last_error(const std::string& n_error_message) {
 }
 
 moose_error::moose_error() {
+
 #if defined(MOOSE_DEBUG)
 	// inject stacktrace for every error
 	*this << (stacktrace_dump(boost::stacktrace::stacktrace{}));
@@ -79,20 +80,20 @@ error_argument::error_argument(const boost::any &n_something)
 		karma::generate(out, karma::int_, boost::any_cast<int>(n_something));
 	} else if (n_something.type() == typeid(double)) {
 		// define a new generator type based on the new policy
-		typedef karma::real_generator<double, scientific_policy<double> > science_type;
+		using science_type = karma::real_generator<double, scientific_policy<double> >;
 		science_type const scientific = science_type();
 		std::back_insert_iterator<std::string> out(value());
 		karma::generate(out, scientific, boost::any_cast<double>(n_something));
 	} else if (n_something.type() == typeid(float)) {
 		// define a new generator type based on the new policy
-		typedef karma::real_generator<float, scientific_policy<float> > science_type;
+		using science_type = karma::real_generator<float, scientific_policy<float> >;
 		science_type const scientific = science_type();
 		std::back_insert_iterator<std::string> out(value());
 		karma::generate(out, scientific, boost::any_cast<float>(n_something));
 	}
 }
 
-error_argument::~error_argument(void) noexcept {
+error_argument::~error_argument() noexcept {
 
 }
 
