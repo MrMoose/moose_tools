@@ -54,9 +54,15 @@ if (${BUILD_SHARED_LIBS})
 	target_compile_definitions(moose_tools PUBLIC -DMOOSE_TOOLS_DLL)
 endif()
 
+
+#if (NOT MSVC)
+#	target_link_libraries(moose_tools ${CMAKE_DL_LIBS})
+#endif()
+
 target_link_libraries(moose_tools 
 	PUBLIC
 		Boost::boost
+		${CMAKE_DL_LIBS}
 	PRIVATE
 		Boost::log
 		Boost::regex
