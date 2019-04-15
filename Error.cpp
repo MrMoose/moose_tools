@@ -39,7 +39,7 @@ moose_error::moose_error() {
 
 #if defined(MOOSE_DEBUG)
 	// inject stacktrace for every error
-	*this << (stacktrace_dump(boost::stacktrace::stacktrace{}));
+	*this << error_stacktrace(boost::stacktrace::stacktrace{});
 #endif
 }
 
