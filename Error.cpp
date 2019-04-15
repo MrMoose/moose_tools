@@ -7,8 +7,8 @@
 
 #include <boost/spirit/include/karma.hpp>
 #include <boost/spirit/home/karma/numeric/real_policies.hpp>
-
 #include <boost/thread/tss.hpp>
+#include <boost/core/ignore_unused.hpp>
 
 namespace moose {
 namespace tools {
@@ -60,10 +60,14 @@ struct scientific_policy : karma::real_policies<Num> {
 
 	// we want the numbers always to be in scientific format
 	static int floatfield(Num n) {
+		
+		boost::ignore_unused(n);
 		return karma::real_policies<Num>::fmtflags::scientific;
 	}
 
 	static unsigned int precision(Num n) {
+
+		boost::ignore_unused(n);
 		return 15;
 	};
 };
