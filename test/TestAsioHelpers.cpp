@@ -190,12 +190,8 @@ BOOST_AUTO_TEST_CASE(TimedConnect) {
 	moose::tools::async_timed_connect(socket, "127.0.0.1", 2000, 5,
 
 		[&] (boost::system::error_code n_errc) {
+
 			// I just relay whatever error came up and be on my way
-			if (n_errc) {
-				std::cerr << "timed connect returned error: " << n_errc << std::endl;
-			} else {
-				std::cout << "timed connect ready" << std::endl;
-			}
 			error = n_errc;
 			boost::lock_guard<boost::mutex> lock(mutex);
 			connect_ready = true;
@@ -210,8 +206,6 @@ BOOST_AUTO_TEST_CASE(TimedConnect) {
 			cond.wait(lock);
 		}
 	}
-
-	std::cout << "connect returned" << std::endl;
 	
 	BOOST_TEST_MESSAGE("Checking connect results");
 
@@ -252,18 +246,11 @@ BOOST_AUTO_TEST_CASE(TimeoutConnect) {
 	// Measure the time it takes for the operation to complete
 	const std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 
-	std::cout << "going into supposed timeout" << std::endl;
-
 	moose::tools::async_timed_connect(socket, "127.0.0.1", 2001, 2,
 
 		[&](boost::system::error_code n_errc) {
 
 			// I just relay whatever error came up and be on my way
-			if (n_errc) {
-				std::cerr << "timed connect returned error: " << n_errc << std::endl;
-			} else {
-				std::cout << "timed connect ready" << std::endl;
-			}
 			error = n_errc;
 			boost::lock_guard<boost::mutex> lock(mutex);
 			connect_ready = true;
@@ -279,10 +266,7 @@ BOOST_AUTO_TEST_CASE(TimeoutConnect) {
 		}
 	}
 
-	std::cout << "connect returned" << std::endl;
-
 	// If we are way past our deadline right now the timeout must be considered faulty
-
 	const fsec dur = (std::chrono::steady_clock::now() - start);
 	if (dur > std::chrono::milliseconds(1900) && dur < std::chrono::milliseconds(2100)) {
 		std::cout << "Connection timeout worked OK after " << dur.count() << " secs: " << error << std::endl;
@@ -294,9 +278,8 @@ BOOST_AUTO_TEST_CASE(TimeoutConnect) {
 
 	// We should have no error and a connected socket
 
-	BOOST_CHECK(error == boost::system::error_code());
-	BOOST_CHECK(socket.is_open());
-	BOOST_CHECK(socket.remote_endpoint().address() == boost::asio::ip::address::from_string("127.0.0.1"));
+	BOOST_CHECK(error == boost::asio::error::timed_out);
+	BOOST_CHECK(!socket.is_open());
 
 	io_ctx.stop();
 	iothread->join();

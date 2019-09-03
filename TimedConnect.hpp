@@ -29,8 +29,8 @@
 // only used by async_timed_connect. Do not use this, look below
 struct async_timed_connect_implementation {
 
-	// The implementation holds a reference to the socket as it is used for
-	// multiple async_write operations.
+	// The implementation holds a pointer to the socket as it is used for
+	// multiple async_write operations but owned outside
 	boost::asio::ip::tcp::socket      &m_socket;
 	boost::asio::ip::tcp::resolver     m_resolver;
 	std::unique_ptr<std::string>       m_hostname;
@@ -79,14 +79,12 @@ struct async_timed_connect_implementation {
 			// composed but I have to derive from the pattern as I cannot yield after the expires_after
 			// and the socket operation is the only one I know how to cancel
 			m_timeout_timer->expires_after(std::chrono::seconds(m_timeout));
-			m_timeout_timer->async_wait([expiry{m_timeout_timer->expiry()}](const boost::system::error_code &n_error) {
+			m_timeout_timer->async_wait([expiry{ m_timeout_timer->expiry() }, socket{ &m_socket }](const boost::system::error_code &n_error) {
 
 				if (n_error == boost::asio::error::operation_aborted) {
 					std::cout << "timer aborted" << std::endl;
 					return;
 				}
-
-				std::cout << "timer fired with " << n_error << std::endl;
 
 				// Check whether the deadline has passed. We compare the deadline against
 				// the current time since a new asynchronous operation may have moved the
@@ -96,25 +94,19 @@ struct async_timed_connect_implementation {
 					// asynchronous operations are cancelled. This means the async_connect operation,
 					// which will also answer the callback completion handler.
 					// As we know the coroutine has not continued past the connect operation,
-					// we may access this in this case. In most other cases it would already be dead.
-					std::cout << "closing socket " << std::endl;
-					
-					
-				//	m_socket.close();
-
-
-					std::cout << "socket closed" << std::endl;
-				} else {
-					std::cout << "expiry not passed " << std::endl;
+					// we may access the ptr in this case
+					socket->close();
 				}
 			});
 			
 			yield m_socket.async_connect(*n_results, std::move(n_self));
 			if (n_error) {
+				if (n_error == boost::asio::error::operation_aborted ) {
+					n_self.complete(boost::asio::error::timed_out);
+				} else {
+					n_self.complete(n_error);
+				}
 
-				std::cerr << "completion handler error after connect: " << n_error << std::endl;
-
-				n_self.complete(n_error);
 				return;
 			}
 
@@ -122,8 +114,7 @@ struct async_timed_connect_implementation {
 
 			// If our socket is closed here, our timeout has killed the operation before we ran
 			if (!m_socket.is_open()) {
-				n_self.complete(boost::asio::error::timed_out);
-			
+				n_self.complete(boost::asio::error::timed_out);			
 				return;
 			}
 
