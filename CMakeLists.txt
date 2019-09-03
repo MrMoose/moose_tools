@@ -23,6 +23,8 @@ set(MOOSE_TOOLS_SRC
 	Log.cpp
 	Assert.cpp
 	AsioHelpers.cpp
+	TimedConnect.cpp
+	SOCKS4.cpp
 	FilesystemHelpers.cpp
 	)
 
@@ -42,6 +44,8 @@ set(MOOSE_TOOLS_HDR
 	Log.hpp
 	Assert.hpp
 	AsioHelpers.hpp
+	TimedConnect.hpp
+	SOCKS4.hpp
 	FilesystemHelpers.hpp
 	)
 
