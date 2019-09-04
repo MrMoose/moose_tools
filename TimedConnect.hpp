@@ -12,21 +12,18 @@
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/use_future.hpp>
 #include <boost/asio/write.hpp>
+#include <boost/beast/core/bind_handler.hpp>
 #include <boost/system/system_error.hpp>
-
-
-#include <boost/system/error_code.hpp>
 #include <boost/lexical_cast.hpp>
 
 #include <string>
 
 
 
-
-
 #include <boost/asio/yield.hpp>
 
 // only used by async_timed_connect. Do not use this, look below
+template<int Protocol = 4>
 struct async_timed_connect_implementation {
 
 	// The implementation holds a pointer to the socket as it is used for
@@ -57,9 +54,10 @@ struct async_timed_connect_implementation {
 	// operations.
 	template <typename Self>
 	void operator()(Self &n_self, const boost::system::error_code &n_error = boost::system::error_code(),
-				boost::asio::ip::tcp::resolver::results_type n_results = boost::asio::ip::tcp::resolver::results_type()) {
+				boost::asio::ip::tcp::resolver::results_type n_results = boost::asio::ip::tcp::resolver::results_type(),
+				boost::asio::ip::tcp::endpoint n_connected_ep = boost::asio::ip::tcp::endpoint()) {
 
-		using namespace boost::asio::ip;
+		using boost::asio::ip::tcp;
 
 		// This is the coroutine impl. Basically a long switch clause which jumps 
 		// back in where yield was last called .
@@ -68,7 +66,17 @@ struct async_timed_connect_implementation {
 
 		reenter(m_coro) {
 
-			yield m_resolver.async_resolve(*m_hostname, *m_portstr, tcp::resolver::query::numeric_service, std::move(n_self));
+			// Do not use switch / break in here...
+			if (Protocol == 0) {
+				yield m_resolver.async_resolve(*m_hostname, *m_portstr, tcp::resolver::query::numeric_service, std::move(n_self));
+			} else if (Protocol == 4) {
+				yield m_resolver.async_resolve(tcp::v4(), *m_hostname, *m_portstr, tcp::resolver::query::numeric_service, std::move(n_self));
+			} else if (Protocol == 6) {
+				yield m_resolver.async_resolve(tcp::v6(), *m_hostname, *m_portstr, tcp::resolver::query::numeric_service, std::move(n_self));
+			} else {
+				n_self.complete(boost::asio::error::no_protocol_option);
+			}
+			
 			if (n_error) {
 				std::cerr << "resolve error " << n_error << std::endl;
 				n_self.complete(n_error);
@@ -99,7 +107,15 @@ struct async_timed_connect_implementation {
 				}
 			});
 			
-			yield m_socket.async_connect(*n_results, std::move(n_self));
+			// I need to use the range connect to try all endpoints. In order to do so, I need a different handler signature than
+			// the one in here. Apparently I can't have a second handler but I found this in beast which can apparently be used
+			// to bind unmatching handlers.
+			yield boost::asio::async_connect(m_socket, n_results, 
+					boost::beast::bind_handler(std::forward<Self>(std::move(n_self)), std::placeholders::_1,
+							boost::asio::ip::tcp::resolver::results_type(), std::placeholders::_2));
+			
+			m_timeout_timer->cancel();
+
 			if (n_error) {
 				if (n_error == boost::asio::error::operation_aborted ) {
 					n_self.complete(boost::asio::error::timed_out);
@@ -110,7 +126,6 @@ struct async_timed_connect_implementation {
 				return;
 			}
 
-			m_timeout_timer->cancel();
 
 			// If our socket is closed here, our timeout has killed the operation before we ran
 			if (!m_socket.is_open()) {
@@ -126,35 +141,26 @@ struct async_timed_connect_implementation {
 			n_self.complete(n_error);
 		}
 	}
-
-
 };
 
 #include <boost/asio/unyield.hpp>
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 namespace moose {
 namespace tools {
 
+/*! @brief a composed resolve and connect operation with a timeout.
+	
+	You may specify a filter to use only IPv4 or v6 by using the template parameter Protocol.
 
-
-
-template <typename CompletionToken>
+	@param n_socket will be implicitly opened and connected. Closed on error
+	@param n_hostname should resolve to whatever you want
+	@param n_port specify where you want to connect to
+	@param n_timeout for the connect operation. I assume the resolve to timeout by itself
+	@param n_token a completion handler with signature void (boost::system::error_code). Error will be set on error.
+ */
+template <int Protocol = 0, typename CompletionToken>
 auto async_timed_connect(boost::asio::ip::tcp::socket &n_socket,
 			const std::string &n_hostname, const boost::uint16_t n_port, const unsigned int n_timeout,
 			CompletionToken &&n_token)
@@ -173,7 +179,7 @@ auto async_timed_connect(boost::asio::ip::tcp::socket &n_socket,
 
 	using namespace boost::asio::ip;
 
-
+	// resolver will get moved to the impl
 	tcp::resolver resolver(n_socket.get_executor());
 
 	std::unique_ptr<std::string> hostname{ new std::string(n_hostname) };
@@ -181,21 +187,6 @@ auto async_timed_connect(boost::asio::ip::tcp::socket &n_socket,
 
 	// Create a steady_timer to be used for the timeout
 	std::unique_ptr<boost::asio::steady_timer> timeout_timer{ new boost::asio::steady_timer(n_socket.get_executor()) };
-
-
-
-// 	std::shared_ptr<async_timed_connect_implementation> impl{ new async_timed_connect_implementation{
-// 		std::ref(n_socket),
-// 		std::move(resolver),
-// 		std::move(hostname),
-// 		std::move(portstr),
-// 		std::move(timeout_timer),
-// 		n_timeout,
-// 		boost::asio::coroutine()
-// 	} };
-
-
-
 
 	// The boost::asio::async_compose function takes:
 	//
@@ -209,7 +200,7 @@ auto async_timed_connect(boost::asio::ip::tcp::socket &n_socket,
 	// includes tracking outstanding work against the I/O executors associated
 	// with the operation (in this example, this is the socket's executor).
 	return boost::asio::async_compose<CompletionToken, void (boost::system::error_code)>(
-		async_timed_connect_implementation{
+		async_timed_connect_implementation<Protocol>{
 				std::ref(n_socket),
 				std::move(resolver),
 				std::move(hostname),
@@ -221,121 +212,6 @@ auto async_timed_connect(boost::asio::ip::tcp::socket &n_socket,
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*! @brief connect a stream socket with a timeout.
-	Caller must ensure that n_socket lives longer than the lifetime
-	of this operation
-	
-
-
-namespace {
-
-	template<typename CompletionToken>
-	void do_connect(boost::asio::ip::tcp::socket &n_socket, const boost::asio::ip::tcp::resolver::results_type &n_endpoints, unsigned int n_timeout, CompletionToken &&n_callback) noexcept {
-
-		// Timer will share ownership between the actual connect handler and the timeout handler.
-		// Whichever lives longer will destroy the timer.
-		std::shared_ptr<boost::asio::steady_timer> timer(std::make_shared<boost::asio::steady_timer>(n_socket.get_executor()));
-
-		// Set a deadline for the connect operation.
-		timer->expires_after(std::chrono::seconds(n_timeout));
-
-		// Start the timer which will react on the deadline passing
-		timer->async_wait([timer, &n_socket](const boost::system::error_code &n_error) {
-
-			if (n_error == boost::asio::error::operation_aborted) {
-				// Connection timeout cancelled. Normal case
-				return;
-			}
-
-			// Check whether the deadline has passed. We compare the deadline against
-			// the current time since a new asynchronous operation may have moved the
-			// deadline before this actor had a chance to run.
-			if (timer->expiry() <= boost::asio::steady_timer::clock_type::now()) {
-				// The deadline has passed. The socket is closed so that any outstanding
-				// asynchronous operations are cancelled. This means the async_connect operation,
-				// which will also answer the callback completion handler
-				n_socket.close();
-			}
-		});
-
-		boost::asio::async_connect(n_socket, n_endpoints,
-			[comp_token{ std::move(n_callback) }, timer, &n_socket](const boost::system::error_code &n_errc, const boost::asio::ip::tcp::endpoint &n_endpoint) {
-
-			// The async_connect() function automatically opens the socket at the start
-			// of the asynchronous operation. If the socket is closed at this time then
-			// the timeout handler must have run first. We answer the token and are done
-			if (!n_socket.is_open()) {
-				comp_token(boost::asio::error::timed_out);
-				return;
-			}
-
-			// Otherwise cancel the timer. It will abort itself next chance
-			timer->cancel();
-
-			// The caller may take care of whatever else may have happened. We may be connected, we may not.
-			// we do expect however for the timeout to not have passed
-			comp_token(n_errc);
-			return;
-		});
-	}
-} // anon ns
-
-
-
-
-
-
-
-
-/*! @brief initiate connection to 
-
-	Callback must be void (boost::system::error_code) noexcept or something along those lines.
-
-	I'm assuming 
-
- 
-
-template<typename CompletionToken>
-void async_timed_connect(boost::asio::ip::tcp::socket &n_socket, const std::string &n_hostname, const boost::uint16_t n_port, CompletionToken &&n_callback, unsigned int n_timeout = 8) noexcept {
-	
-	using namespace boost::asio::ip;
-
-	tcp::resolver resolver(n_socket.get_executor());
-	tcp::resolver::query query(n_hostname, boost::lexical_cast<std::string>(n_port), tcp::resolver::query::numeric_service);
-	
-	// I don't set the timeout here already as I expect the resolver to have its own.
-	resolver.async_resolve(query,
-		[comp_token{ std::move(n_callback) }, &n_socket, n_timeout]
-				(const boost::system::error_code &n_err, const tcp::resolver::results_type &n_endpoints) {
-
-			if (n_err) {
-				comp_token(n_err);
-				return;
-			}
-
-			// If we haven't found any endpoints but there's no error it means it cannot be resolved.
-			if (n_endpoints.empty()) {				
-				comp_token(boost::asio::error::host_not_found);
-				return;
-			}
-
-			do_connect(n_socket, n_endpoints, n_timeout, comp_token);
-	});
-}
-*/
 #if defined(BOOST_MSVC)
 MOOSE_TOOLS_API void ConnectorgetRidOfLNK4221();
 #endif

@@ -187,7 +187,7 @@ BOOST_AUTO_TEST_CASE(TimedConnect) {
 	// Handler will set this to the error that came in
 	boost::system::error_code error;
 
-	moose::tools::async_timed_connect(socket, "127.0.0.1", 2000, 5,
+	moose::tools::async_timed_connect<4>(socket, "127.0.0.1", 2000, 5,
 
 		[&] (boost::system::error_code n_errc) {
 
@@ -276,7 +276,7 @@ BOOST_AUTO_TEST_CASE(TimeoutConnect) {
 
 	BOOST_TEST_MESSAGE("Checking connect results");
 
-	// We should have no error and a connected socket
+	// We should have a timeout error
 
 	BOOST_CHECK(error == boost::asio::error::timed_out);
 	BOOST_CHECK(!socket.is_open());
@@ -286,6 +286,55 @@ BOOST_AUTO_TEST_CASE(TimeoutConnect) {
 	iothread.reset();
 }
 
+
+BOOST_AUTO_TEST_CASE(WrongProtocol) {
+
+	// Now specifically check the timeout case
+	BOOST_TEST_MESSAGE("testing wrong protocol selection");
+
+	boost::asio::io_context io_ctx;
+	boost::asio::ip::tcp::socket socket(io_ctx);
+	boost::asio::executor_work_guard<
+			boost::asio::io_context::executor_type> work{ boost::asio::make_work_guard(io_ctx) };
+	std::unique_ptr<boost::thread> iothread{ std::make_unique<boost::thread>([&] { io_ctx.run(); }) };
+
+	boost::condition_variable cond;
+	boost::mutex mutex;
+	bool connect_ready = false;
+
+	// Handler will set this to the error that came in
+	boost::system::error_code error;
+
+	moose::tools::async_timed_connect<6>(socket, "127.0.0.1", 2001, 2,
+
+		[&](boost::system::error_code n_errc) {
+
+			// I just relay whatever error came up and be on my way
+			error = n_errc;
+			boost::lock_guard<boost::mutex> lock(mutex);
+			connect_ready = true;
+			cond.notify_one();
+	});
+
+	// Wait for the condition variable to turn true as the connect operation
+	// succeeds or fails in the background
+	{
+		boost::unique_lock<boost::mutex> lock(mutex);
+		while (!connect_ready) {
+			cond.wait(lock);
+		}
+	}
+
+	BOOST_TEST_MESSAGE("Checking connect results");
+
+	// We should have no resolved endpoints due to wrong protocol. "127.0.0.1" will not resolve to v6
+	BOOST_CHECK(error);
+	BOOST_CHECK(!socket.is_open());
+
+	io_ctx.stop();
+	iothread->join();
+	iothread.reset();
+}
 
 
 BOOST_AUTO_TEST_SUITE_END()
