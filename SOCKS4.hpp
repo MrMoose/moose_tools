@@ -257,12 +257,14 @@ auto async_socks4_handshake(boost::asio::ip::tcp::socket &n_socket,
 			void (boost::system::error_code)
 	>::return_type {
 
+	using boost::asio::ip::tcp;
+
 	// resolver will get moved to the impl
-	boost::asio::ip::tcp::resolver resolver{ n_socket.get_executor() };
+	tcp::resolver resolver{ n_socket.get_executor() };
 	
 	// same with the query
-	boost::asio::ip::tcp::resolver::query query{
-		boost::asio::ip::tcp::v4(),
+	tcp::resolver::query query{
+		tcp::v4(),
 		n_target_hostname,
 		"80",
 		tcp::resolver::query::numeric_service
