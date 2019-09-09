@@ -91,7 +91,6 @@ struct async_timed_connect_implementation {
 			m_timeout_timer->async_wait([expiry{ m_timeout_timer->expiry() }, socket{ &m_socket }](const boost::system::error_code &n_error) {
 
 				if (n_error == boost::asio::error::operation_aborted) {
-					std::cout << "timer aborted" << std::endl;
 					return;
 				}
 
@@ -143,7 +142,6 @@ struct async_timed_connect_implementation {
 
 			m_hostname.reset();
 			m_portstr.reset();
-
 
 			// Call the user-supplied handler with the result of the operation.
 			n_self.complete(n_error);

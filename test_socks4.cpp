@@ -116,7 +116,7 @@ int main(int argc, char **argv) {
 		std::cout << "Starting handshake for target:  " << socks_hostname << ":" << socks_port << std::endl;
 
 
-		moose::tools::async_socks4_handshake(socket, target_hostname, target_port, 
+		moose::tools::async_socks4_handshake(socket, target_hostname, target_port, 5,
 
 			[&](boost::system::error_code n_errc) {
 

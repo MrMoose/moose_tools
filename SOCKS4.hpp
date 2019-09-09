@@ -21,16 +21,8 @@
 #include <string>
 
 
-
-
-
-// strangely, I cannot have above struct in the namespace. Apparently due to the yield/unyield magick.
-
 namespace moose {
 namespace tools {
-
-
-
 
 // the composed operation's logic is implemented as a state
 // machine. The coroutine approach didn't work as I could not adapt to different 
@@ -65,9 +57,9 @@ struct async_socks4_handshake_implementation {
 	std::unique_ptr<unsigned char[]> m_reply_buffer;     // always length 8
 	unsigned int                     m_reply_length;
 
-	// A steady timer used for introducing a delay.
 	// Will use that for timeout
-//	std::unique_ptr<boost::asio::steady_timer> m_delay_timer;
+	std::unique_ptr<boost::asio::steady_timer> m_timeout_timer;
+	const unsigned int               m_timeout;
 
 	// The initializing function
 	template <typename Self>
@@ -123,6 +115,30 @@ struct async_socks4_handshake_implementation {
 		memcpy(&m_request_buffer[4], &byteaddress, byteaddress.size());  // 4 bytes for the IP, only v4 supported by... well... v4
 		strcpy(reinterpret_cast<char *>(&m_request_buffer[8]), "Stage"); // user identification may be anything	
 
+		// Set a timeout for the entire operation. This is a wrong implementation as the timer 
+		// handler should basically be this as well with shared ownership instead of the move-of-self
+		// approach which is necessary since we have multiple handlers in flight.
+		// Let's hope I'm gonna make this right soon.
+		m_timeout_timer->expires_after(std::chrono::seconds(m_timeout));
+		m_timeout_timer->async_wait([expiry{ m_timeout_timer->expiry() }, socket{ &m_socket }](const boost::system::error_code &n_error) {
+
+			if (n_error == boost::asio::error::operation_aborted) {
+				return;
+			}
+
+			// Check whether the deadline has passed. We compare the deadline against
+			// the current time since a new asynchronous operation may have moved the
+			// deadline before this actor had a chance to run.
+			if (expiry <= boost::asio::steady_timer::clock_type::now()) {
+				// The deadline has passed. The socket is closed so that any outstanding
+				// asynchronous operations are cancelled. This means the async_connect operation,
+				// which will also answer the callback completion handler.
+				// As we know the coroutine has not continued past the connect operation,
+				// we may access the ptr in this case
+				socket->close();
+			}
+		});
+
 		// write the request to the socket and start waiting for a response
 		m_state = State::handle_request_write;
 		boost::asio::async_write(m_socket,
@@ -143,6 +159,13 @@ struct async_socks4_handshake_implementation {
 				return;
 			}
 
+			// If our socket is closed here, our timeout has killed the operation before 
+			// we even transmitted our request
+			if (!m_socket.is_open()) {
+				n_self.complete(boost::asio::error::timed_out);
+				return;
+			}
+
 			// We have successfully written our request and now receive a response
 			m_state = State::handle_read_response;
 			boost::asio::async_read(m_socket,
@@ -153,8 +176,23 @@ struct async_socks4_handshake_implementation {
 			// We must be in that state or above logic contains a flaw
 			MOOSE_ASSERT(m_state == State::handle_read_response);
 
+			// This was our last operation. Cancel the timer
+			m_timeout_timer->cancel();
+
 			if (n_error) {
-				n_self.complete(n_error);
+				if (n_error == boost::asio::error::operation_aborted) {
+					n_self.complete(boost::asio::error::timed_out);
+				} else {
+					n_self.complete(n_error);
+				}
+
+				return;
+			}
+
+			// If our socket is closed here, our timeout has killed the operation before 
+			// we even transmitted our request
+			if (!m_socket.is_open()) {
+				n_self.complete(boost::asio::error::timed_out);
 				return;
 			}
 
@@ -193,13 +231,7 @@ struct async_socks4_handshake_implementation {
 			n_self.complete(n_error);
 		}
 	}
-
 };
-
-
-
-
-
 
 
 /*! @brief a socks4 handshake wrapped up in an asio composed operation
@@ -213,7 +245,7 @@ struct async_socks4_handshake_implementation {
  */
 template <typename CompletionToken>
 auto async_socks4_handshake(boost::asio::ip::tcp::socket &n_socket,
-		const std::string n_target_hostname, const boost::uint16_t n_target_port,
+		const std::string n_target_hostname, const boost::uint16_t n_target_port, const unsigned int n_timeout,
 		CompletionToken &&n_token)
 
 	// See https://www.boost.org/doc/libs/1_71_0/doc/html/boost_asio/example/cpp11/operations/composed_8.cpp
@@ -225,17 +257,10 @@ auto async_socks4_handshake(boost::asio::ip::tcp::socket &n_socket,
 			void (boost::system::error_code)
 	>::return_type {
 
-	// Moose, listen up!
-	//
-	// I think the reason this impl here exists is primarily to setup local data and 
-	// objects in the impl wrapper. As it turns out, inside the coroutine impl no objects can be created on stack.
-	// Possibly because the coroutine is 'stackless'. But anyway, objects should be set up here and moved into the impl.
-	// So, every object you need inside the impl must be created here.
-
-
 	// resolver will get moved to the impl
 	boost::asio::ip::tcp::resolver resolver{ n_socket.get_executor() };
 	
+	// same with the query
 	boost::asio::ip::tcp::resolver::query query{
 		boost::asio::ip::tcp::v4(),
 		n_target_hostname,
@@ -251,8 +276,7 @@ auto async_socks4_handshake(boost::asio::ip::tcp::socket &n_socket,
 	std::unique_ptr<unsigned char[]> reply_buffer(new unsigned char[reply_length]);
 
 	// Create a steady_timer for timeouts
-// 	std::unique_ptr<boost::asio::steady_timer> m_delay_timer(
-// 			new boost::asio::steady_timer(n_socket.get_executor()));
+	std::unique_ptr<boost::asio::steady_timer> timeout_timer(new boost::asio::steady_timer(n_socket.get_executor()));
 
 	return boost::asio::async_compose<CompletionToken, void (boost::system::error_code)>(
 			async_socks4_handshake_implementation{			
@@ -264,7 +288,10 @@ auto async_socks4_handshake(boost::asio::ip::tcp::socket &n_socket,
 					std::move(request_buffer),
 					request_length,
 					std::move(reply_buffer),
-					reply_length },
+					reply_length,
+					std::move(timeout_timer),
+					n_timeout,
+			},
 			n_token, n_socket);
 }
 
