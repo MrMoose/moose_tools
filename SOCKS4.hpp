@@ -7,6 +7,7 @@
 #include "MooseToolsConfig.hpp"
 #include "TimedConnect.hpp"
 #include "Log.hpp"
+#include "Assert.hpp"
 
 #include <boost/asio/compose.hpp>
 #include <boost/asio/io_context.hpp>
@@ -20,11 +21,28 @@
 #include <string>
 
 
-#include <boost/asio/yield.hpp>
 
-// In this example, the composed operation's logic is implemented as a state
-// machine within a hand-crafted function object.
+
+
+// strangely, I cannot have above struct in the namespace. Apparently due to the yield/unyield magick.
+
+namespace moose {
+namespace tools {
+
+
+
+
+// the composed operation's logic is implemented as a state
+// machine. The coroutine approach didn't work as I could not adapt to different 
+// handler signatures
 struct async_socks4_handshake_implementation {
+
+	enum class State {
+		start,
+		handle_resolve,
+		handle_request_write,
+		handle_read_response
+	};
 
 	enum class ReplyStatus {
 		request_granted = 0x5a,
@@ -38,6 +56,7 @@ struct async_socks4_handshake_implementation {
 	boost::asio::ip::tcp::socket    &m_socket;
 	boost::asio::ip::tcp::resolver   m_resolver;
 	boost::asio::ip::tcp::resolver::query   m_query;
+	State                            m_state;
 	boost::uint16_t                  m_target_port;
 
 	std::unique_ptr<unsigned char[]> m_request_buffer;   // length 14, for all I know
@@ -50,247 +69,102 @@ struct async_socks4_handshake_implementation {
 	// Will use that for timeout
 //	std::unique_ptr<boost::asio::steady_timer> m_delay_timer;
 
-	// The coroutine state.
-	boost::asio::coroutine           m_coro;
-
+	// The initializing function
 	template <typename Self>
-	void operator()(Self &n_self, const boost::system::error_code &n_error = boost::system::error_code(),
-			boost::asio::ip::tcp::resolver::results_type n_results = boost::asio::ip::tcp::resolver::results_type(),
-			std::size_t = 0) {
+	void operator()(Self &n_self) {
 
 		using namespace boost::asio::ip;
 		using namespace moose::tools;
 
-		// This is the coroutine impl. Basically a long switch clause which jumps 
-		// back in where yield was last called .
-		// Every time an async ops inside yields, the state is saved for the next call.
-		// Error is the global n_error above
-		reenter(m_coro) {
+		MOOSE_ASSERT(m_state == State::start);
 
-			// Put the timeout in ASAP!
-// 			m_delay_timer->expires_after(std::chrono::seconds(1));
-// 			yield m_delay_timer->async_wait(std::move(n_self));
-// 			if (n_error) {
-// 				break;
-// 			}
-
-
-			// First resolve the target hostname ourselves.
-			// SOCKS4 doesn't seem to support resolving on the client's side and we 
-			// would likely do it ourselves anyway
-			// I use "80" as service name as I wouldn't know what else to say.
-			// We cannot re-resolve the port to it.
-
-// 			yield m_resolver.async_resolve(tcp::v4(), *m_target_hostname, *m_target_servicename, tcp::resolver::query::numeric_service,
-// 				std::move(n_self));
-
-			
-			
-			yield m_resolver.async_resolve(m_query, std::move(n_self));
-			//		boost::beast::bind_handler(std::move(n_self), boost::placeholders::_1, 0, boost::placeholders::_2));
-
-
-
-
-			if (n_error) {
-				n_self.complete(n_error);
-				return;
-			}
-			
-			{		
-				boost::asio::ip::address_v4::bytes_type byteaddress;
-				bool gotone = false;
-
-				while (!gotone && (n_results != tcp::resolver::iterator())) {
-					boost::asio::ip::address addr = (n_results++)->endpoint().address();
-					if (addr.is_v6()) {
-						BOOST_LOG_SEV(logger(), warning) << "IPv6 address resolved in SOCKS4 connect while we specifically asked for v4";
-					} else {
-						byteaddress = addr.to_v4().to_bytes();
-						gotone = true;
-					}
-				}
-
-				// If we have no v4 address returned there's little we can do.
-				if (!gotone) {
-					n_self.complete(boost::asio::error::host_not_found);
-					return;
-				}
-
-				// Fill in the request buffer which was allocated in the function before.
-				m_request_buffer[0] = static_cast<std::uint8_t>(4);              // SOCKS protocol version 4
-				m_request_buffer[1] = static_cast<std::uint8_t>(1);              // connect command
-				m_request_buffer[2] = (m_target_port >> 8) & 0xff;               // port high byte
-				m_request_buffer[3] = m_target_port & 0xff;                      // port low byte
-				memcpy(&m_request_buffer[4], &byteaddress, byteaddress.size());  // 4 bytes for the IP, only v4 supported by... well... v4
-				strcpy(reinterpret_cast<char *>(&m_request_buffer[8]), "Stage"); // user identification may be anything	
-			}
-
-		
-			// Send our request to the server and yield
-			yield boost::asio::async_write(m_socket,
-						boost::asio::const_buffer(m_request_buffer.get(), m_request_length),
-			//			std::move(n_self));
-						boost::beast::bind_handler(std::move(n_self), boost::placeholders::_1, boost::asio::ip::tcp::resolver::results_type(), boost::placeholders::_2));
-
-
-			if (n_error) {
-				n_self.complete(n_error);
-				return;
-			}
-			
-			// Read the server's response and evaluate
-			yield boost::asio::async_read(m_socket,
-						boost::asio::mutable_buffer(m_reply_buffer.get(), m_reply_length),
-						boost::asio::transfer_at_least(m_reply_length),
-				//		std::move(n_self));
-						boost::beast::bind_handler(std::move(n_self), boost::placeholders::_1, boost::asio::ip::tcp::resolver::results_type(), boost::placeholders::_2));
-
-			if (n_error) {
-				n_self.complete(n_error);
-				return;
-			}
-
-			if (m_reply_buffer[0] != 0) {
-				n_self.complete(boost::system::errc::make_error_code(boost::system::errc::protocol_not_supported));
-				return;
-			}
-
-			ReplyStatus status = static_cast<ReplyStatus>(m_reply_buffer[1]);
-
-			if (status != ReplyStatus::request_granted) {
-				// In all cases except request_granted the server closes the connection.
-				// I do the same with the socket
-				boost::system::error_code ignored_errc;
-				m_socket.close(ignored_errc);
-
-// 				if (status == ReplyStatus::request_failed) {
-// 					n_error = boost::system::errc::make_error_code(boost::system::errc::interrupted);
-// 				} else if (status == ReplyStatus::request_failed_no_identd) {
-// 					n_error = boost::system::errc::make_error_code(boost::system::errc::operation_not_permitted);
-// 				} else if (status == ReplyStatus::request_failed_bad_user_id) {
-// 					n_error = boost::system::errc::make_error_code(boost::system::errc::operation_not_permitted);
-// 				}
-			}
-			
-			// Deallocate the buffers before calling the
-			// user-supplied completion handler.
-			// The example this was taken from here:
-			// https://www.boost.org/doc/libs/1_71_0/doc/html/boost_asio/example/cpp11/operations/composed_8.cpp
-			// ...does this explicitly. I don't know why, shouldn't they go out of scope anyway?
-			m_request_buffer.reset();
-			m_reply_buffer.reset();
-
-			
-
-
-			n_self.complete(n_error);
-		}
+		m_state = State::handle_resolve;
+		m_resolver.async_resolve(m_query, std::move(n_self));
 	}
 
+	// This handler signature shall be selected by async_resolve
 	template <typename Self>
-	void operator()(Self &n_self, const boost::system::error_code &n_error = boost::system::error_code(),
-		boost::asio::ip::tcp::resolver::results_type n_results = boost::asio::ip::tcp::resolver::results_type(),
-		std::size_t = 0) {
+	void operator()(Self &n_self, const boost::system::error_code &n_error, boost::asio::ip::tcp::resolver::results_type n_results) {
 
 		using namespace boost::asio::ip;
 		using namespace moose::tools;
 
-		// This is the coroutine impl. Basically a long switch clause which jumps 
-		// back in where yield was last called .
-		// Every time an async ops inside yields, the state is saved for the next call.
-		// Error is the global n_error above
-		reenter(m_coro) {
+		if (n_error) {
+			n_self.complete(n_error);
+			return;
+		}
 
-			// Put the timeout in ASAP!
-// 			m_delay_timer->expires_after(std::chrono::seconds(1));
-// 			yield m_delay_timer->async_wait(std::move(n_self));
-// 			if (n_error) {
-// 				break;
-// 			}
+		MOOSE_ASSERT(m_state == State::handle_resolve);
 
+		boost::asio::ip::address_v4::bytes_type byteaddress;
+		bool gotone = false;
 
-			// First resolve the target hostname ourselves.
-			// SOCKS4 doesn't seem to support resolving on the client's side and we 
-			// would likely do it ourselves anyway
-			// I use "80" as service name as I wouldn't know what else to say.
-			// We cannot re-resolve the port to it.
+		while (!gotone && (n_results != tcp::resolver::iterator())) {
+			boost::asio::ip::address addr = (n_results++)->endpoint().address();
+			if (addr.is_v6()) {
+				BOOST_LOG_SEV(logger(), warning) << "IPv6 address resolved in SOCKS4 connect while we specifically asked for v4";
+			} else {
+				byteaddress = addr.to_v4().to_bytes();
+				gotone = true;
+			}
+		}
 
-// 			yield m_resolver.async_resolve(tcp::v4(), *m_target_hostname, *m_target_servicename, tcp::resolver::query::numeric_service,
-// 				std::move(n_self));
+		// If we have no v4 address returned there's little we can do.
+		if (!gotone) {
+			n_self.complete(boost::asio::error::host_not_found);
+			return;
+		}
 
+		// Fill in the request buffer which was allocated in the function before.
+		m_request_buffer[0] = static_cast<std::uint8_t>(4);              // SOCKS protocol version 4
+		m_request_buffer[1] = static_cast<std::uint8_t>(1);              // connect command
+		m_request_buffer[2] = (m_target_port >> 8) & 0xff;               // port high byte
+		m_request_buffer[3] = m_target_port & 0xff;                      // port low byte
+		memcpy(&m_request_buffer[4], &byteaddress, byteaddress.size());  // 4 bytes for the IP, only v4 supported by... well... v4
+		strcpy(reinterpret_cast<char *>(&m_request_buffer[8]), "Stage"); // user identification may be anything	
 
+		// write the request to the socket and start waiting for a response
+		m_state = State::handle_request_write;
+		boost::asio::async_write(m_socket,
+				boost::asio::const_buffer(m_request_buffer.get(), m_request_length), std::move(n_self));
+	}
 
-			yield m_resolver.async_resolve(m_query, std::move(n_self));
-			//		boost::beast::bind_handler(std::move(n_self), boost::placeholders::_1, 0, boost::placeholders::_2));
+	// This function is selected by both async_read and async_write, introducing the need for the state machine
+	template <typename Self>
+	void operator()(Self &n_self, boost::system::error_code n_error, std::size_t) {
 
+		using namespace boost::asio::ip;
+		using namespace moose::tools;
 
-
+		if (m_state == State::handle_request_write) {
 
 			if (n_error) {
 				n_self.complete(n_error);
 				return;
 			}
 
-			{
-				boost::asio::ip::address_v4::bytes_type byteaddress;
-				bool gotone = false;
-
-				while (!gotone && (n_results != tcp::resolver::iterator())) {
-					boost::asio::ip::address addr = (n_results++)->endpoint().address();
-					if (addr.is_v6()) {
-						BOOST_LOG_SEV(logger(), warning) << "IPv6 address resolved in SOCKS4 connect while we specifically asked for v4";
-					} else {
-						byteaddress = addr.to_v4().to_bytes();
-						gotone = true;
-					}
-				}
-
-				// If we have no v4 address returned there's little we can do.
-				if (!gotone) {
-					n_self.complete(boost::asio::error::host_not_found);
-					return;
-				}
-
-				// Fill in the request buffer which was allocated in the function before.
-				m_request_buffer[0] = static_cast<std::uint8_t>(4);              // SOCKS protocol version 4
-				m_request_buffer[1] = static_cast<std::uint8_t>(1);              // connect command
-				m_request_buffer[2] = (m_target_port >> 8) & 0xff;               // port high byte
-				m_request_buffer[3] = m_target_port & 0xff;                      // port low byte
-				memcpy(&m_request_buffer[4], &byteaddress, byteaddress.size());  // 4 bytes for the IP, only v4 supported by... well... v4
-				strcpy(reinterpret_cast<char *>(&m_request_buffer[8]), "Stage"); // user identification may be anything	
-			}
-
-
-			// Send our request to the server and yield
-			yield boost::asio::async_write(m_socket,
-				boost::asio::const_buffer(m_request_buffer.get(), m_request_length),
-				//			std::move(n_self));
-				boost::beast::bind_handler(std::move(n_self), boost::placeholders::_1, boost::asio::ip::tcp::resolver::results_type(), boost::placeholders::_2));
-
+			// We have successfully written our request and now receive a response
+			m_state = State::handle_read_response;
+			boost::asio::async_read(m_socket,
+					boost::asio::mutable_buffer(m_reply_buffer.get(), m_reply_length),
+					boost::asio::transfer_exactly(m_reply_length),
+					std::move(n_self));
+		} else {
+			// We must be in that state or above logic contains a flaw
+			MOOSE_ASSERT(m_state == State::handle_read_response);
 
 			if (n_error) {
 				n_self.complete(n_error);
 				return;
 			}
 
-			// Read the server's response and evaluate
-			yield boost::asio::async_read(m_socket,
-				boost::asio::mutable_buffer(m_reply_buffer.get(), m_reply_length),
-				boost::asio::transfer_at_least(m_reply_length),
-				//		std::move(n_self));
-				boost::beast::bind_handler(std::move(n_self), boost::placeholders::_1, boost::asio::ip::tcp::resolver::results_type(), boost::placeholders::_2));
-
-			if (n_error) {
-				n_self.complete(n_error);
-				return;
-			}
-
+			// First byte is zero or error (wrong protocol)
 			if (m_reply_buffer[0] != 0) {
 				n_self.complete(boost::system::errc::make_error_code(boost::system::errc::protocol_not_supported));
 				return;
 			}
 
+			// second byte is the actual response
 			ReplyStatus status = static_cast<ReplyStatus>(m_reply_buffer[1]);
 
 			if (status != ReplyStatus::request_granted) {
@@ -299,13 +173,13 @@ struct async_socks4_handshake_implementation {
 				boost::system::error_code ignored_errc;
 				m_socket.close(ignored_errc);
 
-				// 				if (status == ReplyStatus::request_failed) {
-				// 					n_error = boost::system::errc::make_error_code(boost::system::errc::interrupted);
-				// 				} else if (status == ReplyStatus::request_failed_no_identd) {
-				// 					n_error = boost::system::errc::make_error_code(boost::system::errc::operation_not_permitted);
-				// 				} else if (status == ReplyStatus::request_failed_bad_user_id) {
-				// 					n_error = boost::system::errc::make_error_code(boost::system::errc::operation_not_permitted);
-				// 				}
+				if (status == ReplyStatus::request_failed) {
+					n_error = boost::system::errc::make_error_code(boost::system::errc::interrupted);
+				} else if (status == ReplyStatus::request_failed_no_identd) {
+					n_error = boost::system::errc::make_error_code(boost::system::errc::operation_not_permitted);
+				} else if (status == ReplyStatus::request_failed_bad_user_id) {
+					n_error = boost::system::errc::make_error_code(boost::system::errc::operation_not_permitted);
+				}
 			}
 
 			// Deallocate the buffers before calling the
@@ -316,21 +190,17 @@ struct async_socks4_handshake_implementation {
 			m_request_buffer.reset();
 			m_reply_buffer.reset();
 
-
-
-
 			n_self.complete(n_error);
 		}
 	}
+
 };
 
-#include <boost/asio/unyield.hpp>
 
 
-// strangely, I cannot have above struct in the namespace. Apparently due to the yield/unyield magick.
 
-namespace moose {
-namespace tools {
+
+
 
 /*! @brief a socks4 handshake wrapped up in an asio composed operation
 	
@@ -389,12 +259,12 @@ auto async_socks4_handshake(boost::asio::ip::tcp::socket &n_socket,
 					std::ref(n_socket),
 					std::move(resolver),
 					std::move(query),
+					async_socks4_handshake_implementation::State::start,
 					n_target_port,
 					std::move(request_buffer),
 					request_length,
 					std::move(reply_buffer),
-					reply_length,
-					boost::asio::coroutine() },
+					reply_length },
 			n_token, n_socket);
 }
 
