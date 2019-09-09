@@ -5,6 +5,7 @@
 
 #pragma once
 #include "MooseToolsConfig.hpp"
+#include "Log.hpp"
 
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/steady_timer.hpp>
@@ -75,10 +76,10 @@ struct async_timed_connect_implementation {
 				yield m_resolver.async_resolve(tcp::v6(), *m_hostname, *m_portstr, tcp::resolver::query::numeric_service, std::move(n_self));
 			} else {
 				n_self.complete(boost::asio::error::no_protocol_option);
+				return;
 			}
 			
 			if (n_error) {
-				std::cerr << "resolve error " << n_error << std::endl;
 				n_self.complete(n_error);
 				return;
 			}
@@ -111,9 +112,11 @@ struct async_timed_connect_implementation {
 			// the one in here. Apparently I can't have a second handler but I found this in beast which can apparently be used
 			// to bind unmatching handlers.
 			yield boost::asio::async_connect(m_socket, n_results, 
-					boost::beast::bind_handler(std::forward<Self>(std::move(n_self)), std::placeholders::_1,
-							boost::asio::ip::tcp::resolver::results_type(), std::placeholders::_2));
-			
+// 					boost::beast::bind_handler(std::forward<Self>(std::move(n_self)), std::placeholders::_1,
+// 							boost::asio::ip::tcp::resolver::results_type(), std::placeholders::_2));
+					boost::beast::bind_handler(std::move(std::forward<Self>(n_self)), boost::placeholders::_1,
+							boost::asio::ip::tcp::resolver::results_type(), boost::placeholders::_2));
+
 			m_timeout_timer->cancel();
 
 			if (n_error) {
@@ -132,6 +135,11 @@ struct async_timed_connect_implementation {
 				n_self.complete(boost::asio::error::timed_out);			
 				return;
 			}
+
+			using namespace moose::tools;
+			boost::system::error_code ignored;
+			tcp::endpoint remote_ep{ m_socket.remote_endpoint(ignored) };
+			BOOST_LOG_SEV(logger(), normal) << "Socket " << &m_socket << " connected to " << remote_ep;
 
 			m_hostname.reset();
 			m_portstr.reset();
@@ -177,10 +185,8 @@ auto async_timed_connect(boost::asio::ip::tcp::socket &n_socket,
 			void (boost::system::error_code)
 	>::return_type {
 
-	using namespace boost::asio::ip;
-
 	// resolver will get moved to the impl
-	tcp::resolver resolver(n_socket.get_executor());
+	boost::asio::ip::tcp::resolver resolver(n_socket.get_executor());
 
 	std::unique_ptr<std::string> hostname{ new std::string(n_hostname) };
 	std::unique_ptr<std::string> portstr{ new std::string(boost::lexical_cast<std::string>(n_port)) };

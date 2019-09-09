@@ -83,6 +83,7 @@ target_include_directories(moose_tools
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
+
 if (${MOOSE_TOOLS_EVENT_LOG})
 	target_compile_definitions(moose_tools PRIVATE -DMOOSE_TOOLS_EVENT_LOG)
 endif()
@@ -103,6 +104,15 @@ set_property(TARGET moose_tools PROPERTY CXX_STANDARD 14)
 if (${MOOSE_USE_COTIRE})
 	cotire(moose_tools)
 endif()
+
+add_executable(test_socks4 test_socks4.cpp)
+target_link_libraries(test_socks4
+	moose_tools
+	Boost::thread
+	Boost::filesystem
+	Boost::system
+	Boost::program_options
+)
 
 add_subdirectory(test)
 enable_testing()
