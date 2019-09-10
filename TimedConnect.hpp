@@ -35,7 +35,7 @@ struct async_timed_connect_implementation {
 	std::unique_ptr<std::string>       m_portstr;
 
 	// A steady timer used for the timeout check
-	std::unique_ptr<boost::asio::steady_timer> m_timeout_timer;
+	std::shared_ptr<boost::asio::steady_timer> m_timeout_timer;
 	const unsigned int                 m_timeout;
 
 	// The coroutine state.
@@ -87,9 +87,10 @@ struct async_timed_connect_implementation {
 
 			// First set a timeout for the connect operation only. We are 
 			// composed but I have to derive from the pattern as I cannot yield after the expires_after
-			// and the socket operation is the only one I know how to cancel
+			// and the socket operation is the only one I know how to cancel.
+			// I catch the shared_ptr to the timer so it stays alive for sure until the callback has run
 			m_timeout_timer->expires_after(std::chrono::seconds(m_timeout));
-			m_timeout_timer->async_wait([socket{ &m_socket }](const boost::system::error_code &n_error) {
+			m_timeout_timer->async_wait([timer{ m_timeout_timer }, socket{ &m_socket }](const boost::system::error_code &n_error) {
 
 				if (n_error == boost::asio::error::operation_aborted) {
 					return;
@@ -180,7 +181,7 @@ auto async_timed_connect(boost::asio::ip::tcp::socket &n_socket,
 	std::unique_ptr<std::string> portstr{ new std::string(boost::lexical_cast<std::string>(n_port)) };
 
 	// Create a steady_timer to be used for the timeout
-	std::unique_ptr<boost::asio::steady_timer> timeout_timer{ new boost::asio::steady_timer(n_socket.get_executor()) };
+	std::shared_ptr<boost::asio::steady_timer> timeout_timer{ std::make_shared<boost::asio::steady_timer>(n_socket.get_executor()) };
 
 	// The boost::asio::async_compose function takes:
 	//
