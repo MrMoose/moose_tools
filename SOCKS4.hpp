@@ -15,7 +15,6 @@
 #include <boost/asio/steady_timer.hpp>
 #include <boost/asio/use_future.hpp>
 #include <boost/asio/write.hpp>
-#include <boost/beast/core/bind_handler.hpp>
 #include <boost/system/system_error.hpp>
 
 #include <string>
@@ -113,7 +112,7 @@ struct async_socks4_handshake_implementation {
 		m_request_buffer[2] = (m_target_port >> 8) & 0xff;               // port high byte
 		m_request_buffer[3] = m_target_port & 0xff;                      // port low byte
 		memcpy(&m_request_buffer[4], &byteaddress, byteaddress.size());  // 4 bytes for the IP, only v4 supported by... well... v4
-		strcpy(reinterpret_cast<char *>(&m_request_buffer[8]), "Stage"); // user identification may be anything	
+		strcpy(reinterpret_cast<char *>(&m_request_buffer[8]), "Moose"); // user identification may be anything	
 
 		// Set a timeout for the entire operation.
 		m_timeout_timer->expires_after(std::chrono::seconds(m_timeout));
@@ -265,7 +264,7 @@ auto async_socks4_handshake(boost::asio::ip::tcp::socket &n_socket,
 	std::unique_ptr<unsigned char[]> reply_buffer(new unsigned char[reply_length]);
 
 	// Create a steady_timer for timeouts
-	std::shared_ptr<boost::asio::steady_timer> timeout_timer{ std::make_shared<boost::asio::steady_timer>(n_socket.get_executor() };
+	std::shared_ptr<boost::asio::steady_timer> timeout_timer{ std::make_shared<boost::asio::steady_timer>(n_socket.get_executor()) };
 
 	return boost::asio::async_compose<CompletionToken, void (boost::system::error_code)>(
 			async_socks4_handshake_implementation{			
