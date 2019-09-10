@@ -59,6 +59,7 @@ struct async_timed_connect_implementation {
 				boost::asio::ip::tcp::endpoint n_connected_ep = boost::asio::ip::tcp::endpoint()) {
 
 		using boost::asio::ip::tcp;
+		using namespace moose::tools;
 
 		// This is the coroutine impl. Basically a long switch clause which jumps 
 		// back in where yield was last called .
@@ -88,31 +89,19 @@ struct async_timed_connect_implementation {
 			// composed but I have to derive from the pattern as I cannot yield after the expires_after
 			// and the socket operation is the only one I know how to cancel
 			m_timeout_timer->expires_after(std::chrono::seconds(m_timeout));
-			m_timeout_timer->async_wait([expiry{ m_timeout_timer->expiry() }, socket{ &m_socket }](const boost::system::error_code &n_error) {
+			m_timeout_timer->async_wait([socket{ &m_socket }](const boost::system::error_code &n_error) {
 
 				if (n_error == boost::asio::error::operation_aborted) {
 					return;
 				}
 
-				// Check whether the deadline has passed. We compare the deadline against
-				// the current time since a new asynchronous operation may have moved the
-				// deadline before this actor had a chance to run.
-				if (expiry <= boost::asio::steady_timer::clock_type::now()) {
-					// The deadline has passed. The socket is closed so that any outstanding
-					// asynchronous operations are cancelled. This means the async_connect operation,
-					// which will also answer the callback completion handler.
-					// As we know the coroutine has not continued past the connect operation,
-					// we may access the ptr in this case
-					socket->close();
-				}
+				socket->close();
 			});
 			
 			// I need to use the range connect to try all endpoints. In order to do so, I need a different handler signature than
 			// the one in here. Apparently I can't have a second handler but I found this in beast which can apparently be used
 			// to bind unmatching handlers.
 			yield boost::asio::async_connect(m_socket, n_results, 
-// 					boost::beast::bind_handler(std::forward<Self>(std::move(n_self)), std::placeholders::_1,
-// 							boost::asio::ip::tcp::resolver::results_type(), std::placeholders::_2));
 					boost::beast::bind_handler(std::move(std::forward<Self>(n_self)), boost::placeholders::_1,
 							boost::asio::ip::tcp::resolver::results_type(), boost::placeholders::_2));
 
@@ -135,10 +124,9 @@ struct async_timed_connect_implementation {
 				return;
 			}
 
-			using namespace moose::tools;
 			boost::system::error_code ignored;
 			tcp::endpoint remote_ep{ m_socket.remote_endpoint(ignored) };
-			BOOST_LOG_SEV(logger(), normal) << "Socket " << &m_socket << " connected to " << remote_ep;
+			BOOST_LOG_SEV(logger(), debug) << "Socket " << &m_socket << " connected to " << remote_ep;
 
 			m_hostname.reset();
 			m_portstr.reset();
@@ -159,11 +147,13 @@ namespace tools {
 /*! @brief a composed resolve and connect operation with a timeout.
 	
 	You may specify a filter to use only IPv4 or v6 by using the template parameter Protocol.
+	If the timeout hits, the socket will be closed after the operation and the completion token
+	is called with the error code boost::asio::error::timed_out
 
 	@param n_socket will be implicitly opened and connected. Closed on error
 	@param n_hostname should resolve to whatever you want
 	@param n_port specify where you want to connect to
-	@param n_timeout for the connect operation. I assume the resolve to timeout by itself
+	@param n_timeout for the connect operation in seconds. I assume the resolve to timeout by itself
 	@param n_token a completion handler with signature void (boost::system::error_code). Error will be set on error.
  */
 template <int Protocol = 0, typename CompletionToken>
