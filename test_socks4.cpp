@@ -143,21 +143,11 @@ int main(int argc, char **argv) {
 			return EXIT_FAILURE;
 		}
 
-		std::cout << "Starting handshake for target:  " << socks_hostname << ":" << socks_port << std::endl;
-
-
-
-
-
 		socket.close();
 		work.reset();
 		io_ctx.stop();
 		iothread->join();
 		iothread.reset();
-
-
-
-
 
 
 

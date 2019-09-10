@@ -58,7 +58,7 @@ struct async_socks4_handshake_implementation {
 	unsigned int                     m_reply_length;
 
 	// Will use that for timeout
-	std::unique_ptr<boost::asio::steady_timer> m_timeout_timer;
+	std::shared_ptr<boost::asio::steady_timer> m_timeout_timer;
 	const unsigned int               m_timeout;
 
 	// The initializing function
@@ -115,28 +115,15 @@ struct async_socks4_handshake_implementation {
 		memcpy(&m_request_buffer[4], &byteaddress, byteaddress.size());  // 4 bytes for the IP, only v4 supported by... well... v4
 		strcpy(reinterpret_cast<char *>(&m_request_buffer[8]), "Stage"); // user identification may be anything	
 
-		// Set a timeout for the entire operation. This is a wrong implementation as the timer 
-		// handler should basically be this as well with shared ownership instead of the move-of-self
-		// approach which is necessary since we have multiple handlers in flight.
-		// Let's hope I'm gonna make this right soon.
+		// Set a timeout for the entire operation.
 		m_timeout_timer->expires_after(std::chrono::seconds(m_timeout));
-		m_timeout_timer->async_wait([expiry{ m_timeout_timer->expiry() }, socket{ &m_socket }](const boost::system::error_code &n_error) {
+		m_timeout_timer->async_wait([timer{ m_timeout_timer }, socket{ &m_socket }](const boost::system::error_code &n_error) {
 
 			if (n_error == boost::asio::error::operation_aborted) {
 				return;
 			}
 
-			// Check whether the deadline has passed. We compare the deadline against
-			// the current time since a new asynchronous operation may have moved the
-			// deadline before this actor had a chance to run.
-			if (expiry <= boost::asio::steady_timer::clock_type::now()) {
-				// The deadline has passed. The socket is closed so that any outstanding
-				// asynchronous operations are cancelled. This means the async_connect operation,
-				// which will also answer the callback completion handler.
-				// As we know the coroutine has not continued past the connect operation,
-				// we may access the ptr in this case
-				socket->close();
-			}
+			socket->close();
 		});
 
 		// write the request to the socket and start waiting for a response
@@ -278,7 +265,7 @@ auto async_socks4_handshake(boost::asio::ip::tcp::socket &n_socket,
 	std::unique_ptr<unsigned char[]> reply_buffer(new unsigned char[reply_length]);
 
 	// Create a steady_timer for timeouts
-	std::unique_ptr<boost::asio::steady_timer> timeout_timer(new boost::asio::steady_timer(n_socket.get_executor()));
+	std::shared_ptr<boost::asio::steady_timer> timeout_timer{ std::make_shared<boost::asio::steady_timer>(n_socket.get_executor() };
 
 	return boost::asio::async_compose<CompletionToken, void (boost::system::error_code)>(
 			async_socks4_handshake_implementation{			
