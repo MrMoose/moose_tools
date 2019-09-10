@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
 	po::options_description desc("socks4 test options");
 	desc.add_options()
 		("help,h", "Print this help message")
-		("socks_host,s", po::value<std::string>()->default_value("master.vr-on.cloud"), "give running socks4 server hostname")
+		("socks_host,s", po::value<std::string>(), "give running socks4 server hostname")
 		("socks_port,p", po::value<boost::uint16_t>()->default_value(1080), "give running socks4 server port to use")
 		("target_host,S", po::value<std::string>()->default_value("www.google.de"), "give target server hostname")
 		("target_port,P", po::value<boost::uint16_t>()->default_value(80), "give target server port")
