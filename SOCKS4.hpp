@@ -261,8 +261,8 @@ auto async_socks4_handshake(boost::asio::ip::tcp::socket &n_socket,
 	constexpr unsigned int request_length = 14;
 	constexpr unsigned int reply_length = 8;
 
-	std::unique_ptr<unsigned char []> request_buffer(new unsigned char [request_length]);
-	std::unique_ptr<unsigned char[]> reply_buffer(new unsigned char[reply_length]);
+	std::unique_ptr<unsigned char []> request_buffer(new unsigned char [request_length], std::default_delete<unsigned char []>());
+	std::unique_ptr<unsigned char []> reply_buffer(new unsigned char [reply_length], std::default_delete<unsigned char []>());
 
 	// Create a steady_timer for timeouts
 	std::shared_ptr<boost::asio::steady_timer> timeout_timer{ std::make_shared<boost::asio::steady_timer>(n_socket.get_executor()) };
