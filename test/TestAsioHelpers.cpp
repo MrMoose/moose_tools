@@ -77,8 +77,6 @@ BOOST_AUTO_TEST_CASE(CheckStreambufLimit) {
 
 using boost::asio::ip::tcp;
 
-const int max_length = 1024;
-
 class session : public std::enable_shared_from_this<session> {
 	public:
 		session(tcp::socket socket) : socket_(std::move(socket)) {
