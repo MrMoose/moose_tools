@@ -5,7 +5,7 @@
 
 #include "Homedir.hpp"
 
-#include <stdlib.h>
+#include <cstdlib>
 
 namespace moose {
 namespace tools {

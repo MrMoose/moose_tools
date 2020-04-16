@@ -3,7 +3,7 @@
 # Software License, Version 1.0. (See accompanying file
 # LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-cmake_minimum_required(VERSION 3.6)
+cmake_minimum_required(VERSION 3.12)
 project(moose_tools)
 
 find_package(Boost 1.68.0 REQUIRED COMPONENTS chrono thread system program_options log unit_test_framework)
@@ -79,6 +79,28 @@ target_include_directories(moose_tools
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
+if (${CMAKE_VERSION} VERSION_LESS "3.16.0") 
+	message("Please consider to switch to CMake 3.16.0 or above for PCH support")
+else()
+	target_precompile_headers(moose_tools
+		PRIVATE
+		"<string>"
+		"<vector>"
+		"<map>"
+		"<iostream>"
+		"<fstream>"
+		"<algorithm>"
+		"<boost/asio.hpp>"
+		"<boost/chrono/chrono.hpp>"
+		"<boost/thread/thread.hpp>"
+		"<boost/spirit/include/qi.hpp>"
+		"<boost/spirit/include/karma.hpp>"
+		"<boost/spirit/include/phoenix.hpp>"
+	)
+	set_target_properties(moose_tools PROPERTIES UNITY_BUILD ON)
+endif()
+
+
 if (${MOOSE_TOOLS_EVENT_LOG})
 	target_compile_definitions(moose_tools PRIVATE -DMOOSE_TOOLS_EVENT_LOG)
 endif()
@@ -95,10 +117,7 @@ if (${BUILD_SHARED_LIBS})
 	target_compile_definitions(moose_tools PUBLIC -DMOOSE_TOOLS_DLL)
 endif()
 
-set_property(TARGET moose_tools PROPERTY CXX_STANDARD 14)
-if (${MOOSE_USE_COTIRE})
-	cotire(moose_tools)
-endif()
+set_property(TARGET moose_tools PROPERTY CXX_STANDARD 17)
 
 add_subdirectory(test)
 enable_testing()
