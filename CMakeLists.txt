@@ -23,6 +23,8 @@ set(MOOSE_TOOLS_SRC
 	Log.cpp
 	Assert.cpp
 	AsioHelpers.cpp
+	TimedConnect.cpp
+	SOCKS4.cpp
 	FilesystemHelpers.cpp
 	)
 
@@ -42,6 +44,8 @@ set(MOOSE_TOOLS_HDR
 	Log.hpp
 	Assert.hpp
 	AsioHelpers.hpp
+	TimedConnect.hpp
+	SOCKS4.hpp
 	FilesystemHelpers.hpp
 	)
 
@@ -100,7 +104,6 @@ else()
 	set_target_properties(moose_tools PROPERTIES UNITY_BUILD ON)
 endif()
 
-
 if (${MOOSE_TOOLS_EVENT_LOG})
 	target_compile_definitions(moose_tools PRIVATE -DMOOSE_TOOLS_EVENT_LOG)
 endif()
@@ -118,6 +121,15 @@ if (${BUILD_SHARED_LIBS})
 endif()
 
 set_property(TARGET moose_tools PROPERTY CXX_STANDARD 17)
+
+add_executable(test_socks4 test_socks4.cpp)
+target_link_libraries(test_socks4
+	moose_tools
+	Boost::thread
+	Boost::filesystem
+	Boost::system
+	Boost::program_options
+)
 
 add_subdirectory(test)
 enable_testing()

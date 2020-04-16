@@ -9,8 +9,9 @@
 #include "Assert.hpp"
 
 #include <boost/cstdint.hpp>
-#include <boost/atomic.hpp>
 #include <boost/type_traits/is_same.hpp>
+
+#include <atomic>
 
 namespace moose {
 namespace tools {
@@ -98,8 +99,8 @@ class Incarnated {
 			m_parent->increase_incarnation();
 		}
 
-		boost::atomic<boost::uint64_t>  m_incarnation;
-		ParentType                     *m_parent = nullptr;
+		std::atomic<boost::uint64_t>  m_incarnation;
+		ParentType                   *m_parent = nullptr;
 };
 
 
